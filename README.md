@@ -1,0 +1,2 @@
+# Szakdolgozat
+ELTE IK bsc 
