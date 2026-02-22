@@ -1,4 +1,4 @@
-# myVeloFit
+# myBikeFit
 
 A desktop bike-fitting application built with Python and PyQt6.
 
@@ -15,8 +15,4 @@ python main.py
 
 ## Architecture
 
-This project follows the **MVC (Model-View-Controller)** pattern. See `PROMPT.md` for the full specification.
-
-## License
-
-MIT
+This project follows the **MVC (Model-View-Controller)** pattern.
