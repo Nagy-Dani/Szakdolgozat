@@ -1,0 +1,42 @@
+{
+  "road": {
+    "knee_extension": {"min": 140, "max": 150, "weight": 30},
+    "knee_flexion_max": {"min": 65, "max": 75, "weight": 20},
+    "hip_angle": {"min": 40, "max": 55, "weight": 20},
+    "back_angle": {"min": 35, "max": 45, "weight": 15},
+    "ankle_angle": {"min": 90, "max": 120, "weight": 10},
+    "elbow_angle": {"min": 150, "max": 165, "weight": 5}
+  },
+  "mtb": {
+    "knee_extension": {"min": 135, "max": 150, "weight": 30},
+    "knee_flexion_max": {"min": 65, "max": 80, "weight": 20},
+    "hip_angle": {"min": 45, "max": 65, "weight": 20},
+    "back_angle": {"min": 40, "max": 55, "weight": 15},
+    "ankle_angle": {"min": 85, "max": 120, "weight": 10},
+    "elbow_angle": {"min": 145, "max": 170, "weight": 5}
+  },
+  "tt": {
+    "knee_extension": {"min": 142, "max": 152, "weight": 30},
+    "knee_flexion_max": {"min": 60, "max": 72, "weight": 20},
+    "hip_angle": {"min": 30, "max": 45, "weight": 20},
+    "back_angle": {"min": 15, "max": 30, "weight": 15},
+    "ankle_angle": {"min": 90, "max": 115, "weight": 10},
+    "elbow_angle": {"min": 85, "max": 100, "weight": 5}
+  },
+  "gravel": {
+    "knee_extension": {"min": 138, "max": 150, "weight": 30},
+    "knee_flexion_max": {"min": 65, "max": 78, "weight": 20},
+    "hip_angle": {"min": 42, "max": 60, "weight": 20},
+    "back_angle": {"min": 38, "max": 50, "weight": 15},
+    "ankle_angle": {"min": 88, "max": 120, "weight": 10},
+    "elbow_angle": {"min": 148, "max": 168, "weight": 5}
+  },
+  "commute": {
+    "knee_extension": {"min": 135, "max": 150, "weight": 30},
+    "knee_flexion_max": {"min": 65, "max": 80, "weight": 20},
+    "hip_angle": {"min": 50, "max": 70, "weight": 20},
+    "back_angle": {"min": 45, "max": 65, "weight": 15},
+    "ankle_angle": {"min": 85, "max": 125, "weight": 10},
+    "elbow_angle": {"min": 150, "max": 175, "weight": 5}
+  }
+}
