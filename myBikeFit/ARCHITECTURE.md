@@ -1,4 +1,4 @@
-# myVeloFit — Complete Architectural Documentation
+# myBikeFit — Complete Architectural Documentation
 
 > **Generated from the full design & implementation chat session.**  
 > This document explains every file, every function, how they connect,  
@@ -32,7 +32,7 @@
 
 ## 1. Project Overview
 
-**myVeloFit** is a desktop bike-fitting application. The user enters body measurements (height, weight, inseam, foot size, arm length, etc.), uploads a **side-view video** of themselves pedaling, and the app:
+**myBikeFit** is a desktop bike-fitting application. The user enters body measurements (height, weight, inseam, foot size, arm length, etc.), uploads a **side-view video** of themselves pedaling, and the app:
 
 1. Detects body pose using **MediaPipe Pose** (computer vision).
 2. Calculates key **cycling angles** (knee extension, hip angle, back angle, ankle angle, elbow angle).
@@ -59,7 +59,7 @@
 ## 3. Project Structure (File Tree)
 
 ```
-myVeloFit/
+myBikeFit/
 ├── main.py                              ← Application entry point
 ├── requirements.txt                     ← Python dependencies
 ├── README.md                            ← Quick-start guide
@@ -955,7 +955,7 @@ Weights from `angle_ranges.json` (default road): knee=30, hip=20, back=15, ankle
 
 | Constant | Value | Purpose |
 |---|---|---|
-| `APP_NAME` | `"myVeloFit"` | Window title |
+| `APP_NAME` | `"myBikeFit"` | Window title |
 | `APP_VERSION` | `"1.0.0"` | Displayed in title & about |
 | `DEFAULT_UNITS` | `"metric"` | Metric/imperial toggle |
 | `VIDEO_MAX_DURATION_SEC` | `120` | Max video length |
@@ -1206,7 +1206,7 @@ This is a rough approximation: ~2.5mm of saddle height change ≈ 1° of knee ex
 ## 18. How to Run
 
 ```bash
-cd /home/ndg1bp/ws/myVeloFit
+cd /home/ndg1bp/ws/myBikeFit
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -1215,7 +1215,7 @@ python main.py
 
 ### Run tests:
 ```bash
-cd /home/ndg1bp/ws/myVeloFit
+cd /home/ndg1bp/ws/myBikeFit
 pytest tests/ -v
 ```
 
@@ -1237,4 +1237,4 @@ pytest tests/ -v
 
 ---
 
-*This document was generated from the complete chat session that designed and built the myVeloFit application.*
+*This document was generated from the complete chat session that designed and built the myBikeFit application.*

@@ -1,8 +1,8 @@
-# myVeloFit — Recreate Prompt & Specification
+# myBikeFit — Recreate Prompt & Specification
 
 ## Overview
 
-**myVeloFit** is a desktop application built with **Python 3.11+** and **PyQt6** that helps cyclists optimize their bike fit. The application follows the **MVC (Model-View-Controller)** architecture pattern strictly.
+**myBikeFit** is a desktop application built with **Python 3.11+** and **PyQt6** that helps cyclists optimize their bike fit. The application follows the **MVC (Model-View-Controller)** architecture pattern strictly.
 
 The user provides body measurements (height, weight, inseam, foot size, arm length, torso length, shoulder width), then records or uploads a **side-view video** of themselves pedaling on the bike. The app uses **computer vision** (MediaPipe Pose) to detect body landmarks, calculates key cycling angles (knee extension, hip angle, back angle, ankle angle), compares them to biomechanical best-practice ranges, and provides **actionable bike-fit recommendations** (raise/lower saddle, move saddle forward/back, adjust stem length/angle, etc.).
 
@@ -11,7 +11,7 @@ The user provides body measurements (height, weight, inseam, foot size, arm leng
 ## Architecture: MVC
 
 ```
-myVeloFit/
+myBikeFit/
 ├── main.py                          # Application entry point
 ├── requirements.txt                 # Python dependencies
 ├── README.md                        # Project readme
@@ -324,7 +324,7 @@ class Recommendation:
 
 #### `settings.py`
 ```python
-APP_NAME = "myVeloFit"
+APP_NAME = "myBikeFit"
 APP_VERSION = "1.0.0"
 DEFAULT_UNITS = "metric"              # "metric" | "imperial"
 VIDEO_MAX_DURATION_SEC = 120

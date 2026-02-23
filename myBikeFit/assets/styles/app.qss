@@ -1,4 +1,4 @@
-/* myVeloFit — Catppuccin Mocha-inspired dark theme */
+/* myBikeFit — Catppuccin Mocha-inspired dark theme */
 
 QWidget {
     background-color: #1e1e2e;

@@ -1,4 +1,4 @@
-"""myVeloFit — main entry point."""
+"""myBikeFit — main entry point."""
 from __future__ import annotations
 
 import sys
@@ -20,8 +20,8 @@ def load_stylesheet() -> str:
 
 def main() -> None:
     app = QApplication(sys.argv)
-    app.setApplicationName("myVeloFit")
-    app.setOrganizationName("myVeloFit")
+    app.setApplicationName("myBikeFit")
+    app.setOrganizationName("myBikeFit")
 
     # Global font
     font = QFont("Segoe UI", 11)

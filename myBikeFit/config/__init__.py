@@ -1,7 +1,7 @@
-"""myVeloFit application configuration."""
+"""myBikeFit application configuration."""
 from __future__ import annotations
 
-APP_NAME = "myVeloFit"
+APP_NAME = "myBikeFit"
 APP_VERSION = "1.0.0"
 
 # Units
