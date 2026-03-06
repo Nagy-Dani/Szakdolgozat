@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import (
     QPushButton, QGroupBox, QFormLayout, QLineEdit, QMessageBox,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from views.widgets.measurement_input import MeasurementInput
 from models.rider_model import Flexibility, RidingStyle
@@ -27,12 +26,11 @@ class RiderInputView(QWidget):
 
         # Header
         header = QLabel("Rider Measurements")
-        header.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
-        header.setStyleSheet("color: #cdd6f4; margin-bottom: 8px;")
+        header.setObjectName("pageHeader")
         layout.addWidget(header)
 
         subtitle = QLabel("Enter your body measurements to enable accurate bike-fit analysis.")
-        subtitle.setStyleSheet("color: #a6adc8; margin-bottom: 16px; font-size: 13px;")
+        subtitle.setObjectName("pageSubtitle")
         layout.addWidget(subtitle)
 
         # --- Name ---
@@ -47,7 +45,6 @@ class RiderInputView(QWidget):
 
         # --- Body measurements group ---
         body_group = QGroupBox("Body Measurements")
-        body_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
         body_layout = QVBoxLayout(body_group)
 
         self._height = MeasurementInput("Height", "cm", 100, 250, default=175)
@@ -66,7 +63,6 @@ class RiderInputView(QWidget):
 
         # --- Profile group ---
         profile_group = QGroupBox("Riding Profile")
-        profile_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
         profile_layout = QFormLayout(profile_group)
 
         self._flexibility = QComboBox()
@@ -86,16 +82,7 @@ class RiderInputView(QWidget):
         btn_row.addStretch()
         self._btn_next = QPushButton("Next  →")
         self._btn_next.setFixedSize(140, 40)
-        self._btn_next.setStyleSheet("""
-            QPushButton {
-                background-color: #7aa2f7;
-                color: #1e1e2e;
-                font-weight: bold;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-            QPushButton:hover { background-color: #89b4fa; }
-        """)
+        self._btn_next.setProperty("class", "primary")
         self._btn_next.clicked.connect(self._on_submit)
         btn_row.addWidget(self._btn_next)
         layout.addLayout(btn_row)

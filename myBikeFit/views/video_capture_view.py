@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from views.widgets.video_player import VideoPlayer
 
@@ -28,8 +27,7 @@ class VideoCaptureView(QWidget):
         layout.setContentsMargins(32, 24, 32, 24)
 
         header = QLabel("Video Input")
-        header.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
-        header.setStyleSheet("color: #cdd6f4; margin-bottom: 8px;")
+        header.setObjectName("pageHeader")
         layout.addWidget(header)
 
         subtitle = QLabel(
@@ -38,7 +36,7 @@ class VideoCaptureView(QWidget):
             "with at least 5 seconds of steady pedaling."
         )
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet("color: #a6adc8; margin-bottom: 16px; font-size: 13px;")
+        subtitle.setObjectName("pageSubtitle")
         layout.addWidget(subtitle)
 
         # Tips
@@ -49,10 +47,7 @@ class VideoCaptureView(QWidget):
             "• Wear fitted clothing so joints are visible<br>"
             "• Pedal at a steady cadence for 10–20 seconds"
         )
-        tips.setStyleSheet(
-            "background-color: #313244; padding: 12px; border-radius: 8px; "
-            "color: #cdd6f4; font-size: 12px; margin-bottom: 12px;"
-        )
+        tips.setObjectName("tipsBox")
         tips.setWordWrap(True)
         layout.addWidget(tips)
 
@@ -65,16 +60,7 @@ class VideoCaptureView(QWidget):
 
         self._btn_upload = QPushButton("📁  Upload Video")
         self._btn_upload.setFixedSize(180, 40)
-        self._btn_upload.setStyleSheet("""
-            QPushButton {
-                background-color: #45475a;
-                color: #cdd6f4;
-                font-weight: bold;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-            QPushButton:hover { background-color: #585b70; }
-        """)
+        self._btn_upload.setProperty("class", "secondary")
         self._btn_upload.clicked.connect(self._on_upload)
         btn_row.addWidget(self._btn_upload)
 
@@ -83,17 +69,7 @@ class VideoCaptureView(QWidget):
         self._btn_analyze = QPushButton("Analyze  →")
         self._btn_analyze.setFixedSize(160, 40)
         self._btn_analyze.setEnabled(False)
-        self._btn_analyze.setStyleSheet("""
-            QPushButton {
-                background-color: #7aa2f7;
-                color: #1e1e2e;
-                font-weight: bold;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-            QPushButton:hover { background-color: #89b4fa; }
-            QPushButton:disabled { background-color: #45475a; color: #6c7086; }
-        """)
+        self._btn_analyze.setProperty("class", "primary")
         self._btn_analyze.clicked.connect(self._on_analyze)
         btn_row.addWidget(self._btn_analyze)
 

@@ -5,7 +5,6 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QProgressBar, QGroupBox,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from views.widgets.angle_gauge import AngleGauge
 from views.widgets.video_player import VideoPlayer
@@ -23,29 +22,18 @@ class AnalysisView(QWidget):
         layout.setContentsMargins(32, 24, 32, 24)
 
         header = QLabel("Pose Analysis")
-        header.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
-        header.setStyleSheet("color: #cdd6f4; margin-bottom: 8px;")
+        header.setObjectName("pageHeader")
         layout.addWidget(header)
 
         # --- Progress ---
         self._progress_label = QLabel("Waiting for video…")
-        self._progress_label.setStyleSheet("color: #a6adc8; font-size: 13px;")
+        self._progress_label.setObjectName("pageSubtitle")
         layout.addWidget(self._progress_label)
 
         self._progress = QProgressBar()
         self._progress.setRange(0, 100)
         self._progress.setValue(0)
         self._progress.setFixedHeight(8)
-        self._progress.setStyleSheet("""
-            QProgressBar {
-                background-color: #313244;
-                border-radius: 4px;
-            }
-            QProgressBar::chunk {
-                background-color: #7aa2f7;
-                border-radius: 4px;
-            }
-        """)
         layout.addWidget(self._progress)
 
         # --- Main content: video + gauges ---
@@ -57,7 +45,6 @@ class AnalysisView(QWidget):
 
         # Angle gauges sidebar
         gauges_group = QGroupBox("Live Angles")
-        gauges_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 13px; }")
         gauges_layout = QVBoxLayout(gauges_group)
 
         self._gauge_knee_ext = AngleGauge("Knee Extension", 140, 150)

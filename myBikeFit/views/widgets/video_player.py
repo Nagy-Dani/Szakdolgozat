@@ -36,7 +36,7 @@ class VideoPlayer(QWidget):
         self._display = QLabel()
         self._display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._display.setMinimumSize(640, 480)
-        self._display.setStyleSheet("background-color: #1a1a1a; border-radius: 8px;")
+        self._display.setObjectName("videoDisplay")
         layout.addWidget(self._display)
 
         # Controls

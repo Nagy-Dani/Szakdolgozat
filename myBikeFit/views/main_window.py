@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QMenuBar, QStatusBar,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QAction, QFont, QIcon
+from PyQt6.QtGui import QAction, QIcon
 
 from config import APP_NAME, APP_VERSION, WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT, SIDEBAR_WIDTH
 from views.rider_input_view import RiderInputView
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
     load_session_requested = pyqtSignal()
     export_pdf_requested = pyqtSignal()
 
-    PAGES = ["👤  Rider", "🚲  Bike", "🎥  Video", "📐  Analysis", "📊  Results"]
+    PAGES = ["Rider", "Bike", "Video", "Analysis", "Results"]
 
     def __init__(self):
         super().__init__()
@@ -89,42 +89,16 @@ class MainWindow(QMainWindow):
         sidebar = QWidget()
         sidebar.setFixedWidth(SIDEBAR_WIDTH)
         sidebar.setObjectName("sidebar")
-        sidebar.setStyleSheet("""
-            #sidebar {
-                background-color: #1e1e2e;
-                border-right: 1px solid #333;
-            }
-        """)
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 16, 0, 16)
 
         title = QLabel(APP_NAME)
-        title.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        title.setObjectName("sidebarTitle")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("color: #7aa2f7; padding: 12px;")
         sidebar_layout.addWidget(title)
 
         self._nav_list = QListWidget()
-        self._nav_list.setStyleSheet("""
-            QListWidget {
-                background: transparent;
-                border: none;
-                font-size: 14px;
-                color: #cdd6f4;
-            }
-            QListWidget::item {
-                padding: 12px 16px;
-                border-radius: 6px;
-                margin: 2px 8px;
-            }
-            QListWidget::item:selected {
-                background-color: #313244;
-                color: #7aa2f7;
-            }
-            QListWidget::item:hover {
-                background-color: #2a2a3c;
-            }
-        """)
+        self._nav_list.setObjectName("navList")
         for page_name in self.PAGES:
             self._nav_list.addItem(QListWidgetItem(page_name))
         self._nav_list.currentRowChanged.connect(self._on_page_selected)

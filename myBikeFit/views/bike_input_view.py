@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import (
     QPushButton, QGroupBox, QMessageBox,
 )
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QFont
 
 from views.widgets.measurement_input import MeasurementInput
 
@@ -25,21 +24,19 @@ class BikeInputView(QWidget):
         layout.setContentsMargins(32, 24, 32, 24)
 
         header = QLabel("Bike Geometry")
-        header.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
-        header.setStyleSheet("color: #cdd6f4; margin-bottom: 8px;")
+        header.setObjectName("pageHeader")
         layout.addWidget(header)
 
         subtitle = QLabel(
             "Enter your bike measurements. Leave at 0 if unknown — "
             "the analysis will still work using video-based estimates."
         )
-        subtitle.setStyleSheet("color: #a6adc8; margin-bottom: 16px; font-size: 13px;")
+        subtitle.setObjectName("pageSubtitle")
         subtitle.setWordWrap(True)
         layout.addWidget(subtitle)
 
         # --- Measurements ---
         group = QGroupBox("Frame & Fit")
-        group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
         glayout = QVBoxLayout(group)
 
         self._frame_size = MeasurementInput("Frame Size", "cm", 40, 70, default=0)
@@ -64,31 +61,13 @@ class BikeInputView(QWidget):
 
         self._btn_skip = QPushButton("Skip  →")
         self._btn_skip.setFixedSize(120, 40)
-        self._btn_skip.setStyleSheet("""
-            QPushButton {
-                background-color: #45475a;
-                color: #cdd6f4;
-                font-weight: bold;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-            QPushButton:hover { background-color: #585b70; }
-        """)
+        self._btn_skip.setProperty("class", "secondary")
         self._btn_skip.clicked.connect(lambda: self.bike_data_submitted.emit({}))
         btn_row.addWidget(self._btn_skip)
 
         self._btn_next = QPushButton("Next  →")
         self._btn_next.setFixedSize(120, 40)
-        self._btn_next.setStyleSheet("""
-            QPushButton {
-                background-color: #7aa2f7;
-                color: #1e1e2e;
-                font-weight: bold;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-            QPushButton:hover { background-color: #89b4fa; }
-        """)
+        self._btn_next.setProperty("class", "primary")
         self._btn_next.clicked.connect(self._on_submit)
         btn_row.addWidget(self._btn_next)
         layout.addLayout(btn_row)
