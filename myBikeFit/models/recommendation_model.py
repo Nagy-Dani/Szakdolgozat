@@ -24,7 +24,7 @@ class Severity(Enum):
     @property
     def icon(self) -> str:
         return {
-            "optimal": "✅",
+            "optimal": "🟢",
             "minor": "🟡",
             "moderate": "🟠",
             "critical": "🔴",

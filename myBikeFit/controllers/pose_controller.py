@@ -10,6 +10,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from models.pose_model import PoseFrame, PoseSequence
 from services.pose_service import PoseDetector
 from services.video_service import load_video
+from services.angle_calculator import compute_frame_angles
 from config import FRAME_SAMPLE_RATE
 
 
@@ -108,6 +109,15 @@ class PoseController:
     def _on_frame(self, frame_num: int, pose_frame: PoseFrame, annotated) -> None:
         # Update the analysis view's video player with the annotated frame
         self._view.player.set_overlay(annotated)
+        angles = compute_frame_angles(pose_frame)
+        if angles:
+            self._view.update_gauges(
+                knee_ext=angles["knee_extension"],
+                hip=angles["hip_angle"],
+                back=angles["back_angle"],
+                ankle=angles["ankle_angle"],
+                elbow=angles["elbow_angle"],
+            )
 
     def _on_finished(self, sequence: PoseSequence) -> None:
         if self._on_complete_callback:
