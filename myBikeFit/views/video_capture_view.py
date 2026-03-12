@@ -41,7 +41,7 @@ class VideoCaptureView(QWidget):
 
         # Tips
         tips = QLabel(
-            "📌 <b>Tips for best results:</b><br>"
+            "<b>Tips for best results:</b><br>"
             "• Place the camera at hip height, perpendicular to the bike<br>"
             "• Ensure good lighting — avoid backlight<br>"
             "• Wear fitted clothing so joints are visible<br>"
@@ -58,7 +58,7 @@ class VideoCaptureView(QWidget):
         # --- Buttons ---
         btn_row = QHBoxLayout()
 
-        self._btn_upload = QPushButton("📁  Upload Video")
+        self._btn_upload = QPushButton("Upload Video")
         self._btn_upload.setFixedSize(180, 40)
         self._btn_upload.setProperty("class", "secondary")
         self._btn_upload.clicked.connect(self._on_upload)

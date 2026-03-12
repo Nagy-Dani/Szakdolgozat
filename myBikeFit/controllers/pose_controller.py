@@ -78,10 +78,18 @@ class PoseController:
         self._view = analysis_view
         self._thread: QThread | None = None
         self._worker: PoseWorker | None = None
+        self._frame_angles: dict[int, dict[str, float]] = {}
 
     def start_analysis(self, video_path: str) -> None:
         """Begin pose detection in a background thread."""
         self.stop()
+
+        # Clear cached angles from any previous analysis
+        self._frame_angles.clear()
+
+        # Open the video in the analysis view's player so controls work
+        self._view.player.load_video(video_path)
+        self._view.player.frame_changed.connect(self._on_frame_changed)
 
         self._thread = QThread()
         self._worker = PoseWorker(video_path)
@@ -107,10 +115,12 @@ class PoseController:
         self._view.set_progress(pct, msg)
 
     def _on_frame(self, frame_num: int, pose_frame: PoseFrame, annotated) -> None:
-        # Update the analysis view's video player with the annotated frame
-        self._view.player.set_overlay(annotated)
+        # Cache the annotated frame and update the display
+        self._view.player.set_overlay_for_frame(frame_num, annotated)
         angles = compute_frame_angles(pose_frame)
         if angles:
+            # Cache angles so they can be looked up when scrubbing
+            self._frame_angles[frame_num] = angles
             self._view.update_gauges(
                 knee_ext=angles["knee_extension"],
                 hip=angles["hip_angle"],
@@ -118,6 +128,21 @@ class PoseController:
                 ankle=angles["ankle_angle"],
                 elbow=angles["elbow_angle"],
             )
+
+    def _on_frame_changed(self, frame_num: int, raw_frame: np.ndarray) -> None:
+        """Update gauges when the user scrubs to a different frame."""
+        if not self._frame_angles:
+            return
+        # Find the nearest cached frame (not every frame is sampled)
+        nearest = min(self._frame_angles, key=lambda k: abs(k - frame_num))
+        angles = self._frame_angles[nearest]
+        self._view.update_gauges(
+            knee_ext=angles["knee_extension"],
+            hip=angles["hip_angle"],
+            back=angles["back_angle"],
+            ankle=angles["ankle_angle"],
+            elbow=angles["elbow_angle"],
+        )
 
     def _on_finished(self, sequence: PoseSequence) -> None:
         if self._on_complete_callback:

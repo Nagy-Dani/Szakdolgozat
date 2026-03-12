@@ -25,6 +25,7 @@ class VideoPlayer(QWidget):
         self._total_frames = 0
         self._fps = 30.0
         self._overlay_frame: np.ndarray | None = None
+        self._overlays: dict[int, np.ndarray] = {}
 
         self._setup_ui()
 
@@ -70,6 +71,7 @@ class VideoPlayer(QWidget):
 
     def load_video(self, path: str) -> bool:
         self.stop()
+        self._overlays.clear()
         self._cap = cv2.VideoCapture(path)
         if not self._cap.isOpened():
             return False
@@ -83,6 +85,16 @@ class VideoPlayer(QWidget):
     def set_overlay(self, frame: np.ndarray) -> None:
         """Set a frame with skeleton overlay to display instead of raw."""
         self._overlay_frame = frame
+        self._render(frame)
+
+    def set_overlay_for_frame(self, frame_number: int, frame: np.ndarray) -> None:
+        """Cache an annotated frame for a specific frame number and display it."""
+        self._overlays[frame_number] = frame
+        self._current_frame = frame_number
+        self._slider.blockSignals(True)
+        self._slider.setValue(frame_number)
+        self._slider.blockSignals(False)
+        self._lbl_time.setText(f"{frame_number} / {self._total_frames}")
         self._render(frame)
 
     def toggle_play(self) -> None:
@@ -105,6 +117,7 @@ class VideoPlayer(QWidget):
 
     def stop(self) -> None:
         self.pause()
+        self._overlays.clear()
         if self._cap:
             self._cap.release()
             self._cap = None
@@ -139,7 +152,10 @@ class VideoPlayer(QWidget):
         self._slider.setValue(frame_number)
         self._slider.blockSignals(False)
         self._lbl_time.setText(f"{frame_number} / {self._total_frames}")
-        self._render(frame)
+
+        # Use cached overlay if available, otherwise show raw frame
+        display = self._overlays.get(frame_number, frame)
+        self._render(display)
         self.frame_changed.emit(frame_number, frame)
 
     def _render(self, frame: np.ndarray) -> None:
