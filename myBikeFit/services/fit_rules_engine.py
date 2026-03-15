@@ -58,7 +58,7 @@ def evaluate_fit(
 
     # --- Knee Extension (at BDC) ---
     r = ranges["knee_extension"]
-    knee_val = angles.knee_extension_min  # BDC = minimum knee flexion = maximum extension
+    knee_val = angles.knee_extension_max  # BDC = minimum knee flexion = maximum extension
     knee_score = _score_single(knee_val, r["min"], r["max"])
     dev = 0 if r["min"] <= knee_val <= r["max"] else (
         r["min"] - knee_val if knee_val < r["min"] else knee_val - r["max"]
