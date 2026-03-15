@@ -28,6 +28,12 @@ class CyclingAngles:
     def to_dict(self) -> dict:
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, data: dict) -> CyclingAngles:
+        # Filter to only known fields to handle schema evolution
+        known = {f.name for f in cls.__dataclass_fields__.values()}
+        return cls(**{k: v for k, v in data.items() if k in known})
+
 
 @dataclass
 class FitScore:
@@ -63,3 +69,10 @@ class FitScore:
         d = asdict(self)
         d["category"] = self.category
         return d
+
+    @classmethod
+    def from_dict(cls, data: dict) -> FitScore:
+        data = dict(data)
+        data.pop("category", None)  # computed property, not a constructor arg
+        known = {f.name for f in cls.__dataclass_fields__.values()}
+        return cls(**{k: v for k, v in data.items() if k in known})

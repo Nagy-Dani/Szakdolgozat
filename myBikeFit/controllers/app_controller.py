@@ -108,6 +108,26 @@ class AppController:
         )
         self._window.navigate_to(self.PAGE_RESULTS)
 
+        # Auto-save full session after analysis
+        try:
+            video_path = getattr(self._window.video_view, "video_path", None)
+            facing_side = getattr(self._window.video_view, "facing_side", "left")
+            path = save_session(
+                rider=self._rider,
+                bike=self._bike,
+                fit_score=fit_score,
+                cycling_angles=self._analysis_ctrl.angles,
+                recommendations=recommendations,
+                facing_side=facing_side,
+                video_path=video_path,
+            )
+            self._window.set_status(
+                f"Analysis complete — score: {fit_score.overall:.0f} "
+                f"({fit_score.category}) — saved to {path}"
+            )
+        except Exception:
+            pass  # Don't block the UI on save failure
+
     # ------------------------------------------------------------------ Actions
 
     def _update_analysis_ranges(self) -> None:
@@ -133,10 +153,16 @@ class AppController:
 
     def _save(self) -> None:
         try:
+            video_path = getattr(self._window.video_view, "video_path", None)
+            facing_side = getattr(self._window.video_view, "facing_side", "left")
             path = save_session(
-                self._rider,
-                self._bike,
-                self._analysis_ctrl.fit_score,
+                rider=self._rider,
+                bike=self._bike,
+                fit_score=self._analysis_ctrl.fit_score,
+                cycling_angles=self._analysis_ctrl.angles,
+                recommendations=self._analysis_ctrl.recommendations,
+                facing_side=facing_side,
+                video_path=video_path,
             )
             self._window.set_status(f"Session saved: {path}")
         except Exception as e:
@@ -154,8 +180,17 @@ class AppController:
             self._bike = data["bike"]
             self._rider_ctrl.load(self._rider)
             self._bike_ctrl.load(self._bike)
-            self._window.set_status(f"Session loaded: {path}")
-            self._window.navigate_to(self.PAGE_RIDER)
+
+            # Restore results if the session contains analysis data
+            if "fit_score" in data and "recommendations" in data:
+                self._update_analysis_ranges()
+                self._window.results_view.set_scores(data["fit_score"])
+                self._window.results_view.set_recommendations(data["recommendations"])
+                self._window.set_status(f"Session loaded with results: {path}")
+                self._window.navigate_to(self.PAGE_RESULTS)
+            else:
+                self._window.set_status(f"Session loaded: {path}")
+                self._window.navigate_to(self.PAGE_RIDER)
         except Exception as e:
             QMessageBox.critical(self._window, "Load Error", str(e))
 

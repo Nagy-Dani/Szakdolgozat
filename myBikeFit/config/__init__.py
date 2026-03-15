@@ -26,7 +26,7 @@ ANGLE_SMOOTHING_WINDOW = 5
 MIN_PEDAL_CYCLES = 3
 
 # Persistence
-AUTOSAVE_DIR = "~/.mybikefit/sessions"
+AUTOSAVE_DIR = "sessions"
 
 # UI
 WINDOW_MIN_WIDTH = 1200

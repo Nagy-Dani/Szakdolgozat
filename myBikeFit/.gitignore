@@ -93,3 +93,6 @@ videos/
 # Pip
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Local Sessions
+sessions/
