@@ -117,7 +117,8 @@ class PoseController:
     def _on_frame(self, frame_num: int, pose_frame: PoseFrame, annotated) -> None:
         # Cache the annotated frame and update the display
         self._view.player.set_overlay_for_frame(frame_num, annotated)
-        angles = compute_frame_angles(pose_frame)
+        side = self._view.facing_side
+        angles = compute_frame_angles(pose_frame, side=side)
         if angles:
             # Cache angles so they can be looked up when scrubbing
             self._frame_angles[frame_num] = angles

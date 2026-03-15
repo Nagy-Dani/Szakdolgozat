@@ -27,13 +27,12 @@ class PoseFrame:
     def get(self, name: str) -> BodyLandmark | None:
         return self.landmarks.get(name)
 
-    @property
-    def is_complete(self) -> bool:
-        """Check that the key cycling landmarks are visible."""
+    def is_complete(self, side: str = "left") -> bool:
+        """Check that the key cycling landmarks for the given side are visible."""
         required = [
-            "left_hip", "left_knee", "left_ankle",
-            "left_shoulder", "left_elbow", "left_wrist",
-            "left_heel", "left_foot_index",
+            f"{side}_hip", f"{side}_knee", f"{side}_ankle",
+            f"{side}_shoulder", f"{side}_elbow", f"{side}_wrist",
+            f"{side}_heel", f"{side}_foot_index",
         ]
         return all(
             name in self.landmarks and self.landmarks[name].visibility > 0.5
@@ -58,6 +57,5 @@ class PoseSequence:
     def duration_sec(self) -> float:
         return self.total_frames / self.fps if self.fps > 0 else 0.0
 
-    @property
-    def valid_frames(self) -> list[PoseFrame]:
-        return [f for f in self.frames if f.is_complete]
+    def get_valid_frames(self, side: str = "left") -> list[PoseFrame]:
+        return [f for f in self.frames if f.is_complete(side)]

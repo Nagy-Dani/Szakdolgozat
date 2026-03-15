@@ -37,13 +37,14 @@ class AnalysisController:
         sequence: PoseSequence,
         rider: RiderMeasurements,
         bike: BikeGeometry | None = None,
+        side: str = "left",
     ) -> None:
         """Run the full analysis pipeline and push results to the view."""
 
         # 1. Compute per-frame angles
         frame_angles: list[dict[str, float]] = []
-        for pose_frame in sequence.valid_frames:
-            angles = compute_frame_angles(pose_frame)
+        for pose_frame in sequence.get_valid_frames(side):
+            angles = compute_frame_angles(pose_frame, side=side)
             if angles:
                 frame_angles.append(angles)
 

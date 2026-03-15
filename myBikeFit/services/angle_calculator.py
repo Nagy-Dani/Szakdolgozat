@@ -23,10 +23,17 @@ def _angle_3p(p1: tuple[float, float], p2: tuple[float, float], p3: tuple[float,
 
 
 def _angle_to_horizontal(p1: tuple[float, float], p2: tuple[float, float]) -> float:
-    """Angle of the line p1→p2 relative to the horizontal (in degrees)."""
+    """Angle of the line p1→p2 relative to the horizontal (in degrees).
+
+    Always returns a value in 0–90° (the acute angle between the line
+    and the horizontal axis), regardless of the direction of the line.
+    """
     dx = p2[0] - p1[0]
     dy = p2[1] - p1[1]
-    return abs(math.degrees(math.atan2(dy, dx)))
+    angle = abs(math.degrees(math.atan2(dy, dx)))
+    if angle > 90:
+        angle = 180 - angle
+    return angle
 
 
 def _lm_xy(lm: BodyLandmark) -> tuple[float, float]:
@@ -80,20 +87,24 @@ def calculate_shoulder_angle(hip: BodyLandmark, shoulder: BodyLandmark, elbow: B
 # ──────────────────────────────────────────── Frame-level calculation
 
 
-def compute_frame_angles(pose: PoseFrame) -> dict[str, float] | None:
+def compute_frame_angles(pose: PoseFrame, side: str = "left") -> dict[str, float] | None:
     """Compute all cycling angles for a single PoseFrame.
+
+    Args:
+        pose: The detected pose frame.
+        side: Which body side to use — "left" or "right".
 
     Returns None if required landmarks are missing.
     """
     get = pose.get
-    hip = get("left_hip")
-    knee = get("left_knee")
-    ankle = get("left_ankle")
-    shoulder = get("left_shoulder")
-    elbow = get("left_elbow")
-    wrist = get("left_wrist")
-    toe = get("left_foot_index")
-    heel = get("left_heel")
+    hip = get(f"{side}_hip")
+    knee = get(f"{side}_knee")
+    ankle = get(f"{side}_ankle")
+    shoulder = get(f"{side}_shoulder")
+    elbow = get(f"{side}_elbow")
+    wrist = get(f"{side}_wrist")
+    toe = get(f"{side}_foot_index")
+    heel = get(f"{side}_heel")
 
     if not all([hip, knee, ankle, shoulder, elbow, wrist, toe, heel]):
         return None

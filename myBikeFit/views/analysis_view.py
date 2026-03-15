@@ -15,6 +15,7 @@ class AnalysisView(QWidget):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
+        self._facing = "left"
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -63,6 +64,15 @@ class AnalysisView(QWidget):
         layout.addLayout(content, stretch=1)
 
     # ------------------------------------------------------------------ API
+
+    @property
+    def facing_side(self) -> str:
+        """Return 'left' or 'right' — set by AppController from the video page."""
+        return self._facing
+
+    @facing_side.setter
+    def facing_side(self, side: str) -> None:
+        self._facing = side
 
     @property
     def player(self) -> VideoPlayer:

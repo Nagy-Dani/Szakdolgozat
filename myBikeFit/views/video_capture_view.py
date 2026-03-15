@@ -20,6 +20,7 @@ class VideoCaptureView(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._video_path: str | None = None
+        self._facing = "left"
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -51,6 +52,29 @@ class VideoCaptureView(QWidget):
         tips.setWordWrap(True)
         layout.addWidget(tips)
 
+        # --- Facing side toggle ---
+        facing_row = QHBoxLayout()
+        facing_label = QLabel("Cyclist facing:")
+        facing_label.setObjectName("pageSubtitle")
+        facing_row.addWidget(facing_label)
+
+        self._btn_left = QPushButton("← Left")
+        self._btn_right = QPushButton("Right →")
+        self._btn_left.setFixedSize(100, 32)
+        self._btn_right.setFixedSize(100, 32)
+        self._btn_left.setCheckable(True)
+        self._btn_right.setCheckable(True)
+        self._btn_left.setChecked(True)
+
+        self._btn_left.clicked.connect(lambda: self._set_facing("left"))
+        self._btn_right.clicked.connect(lambda: self._set_facing("right"))
+        self._update_facing_buttons()
+
+        facing_row.addWidget(self._btn_left)
+        facing_row.addWidget(self._btn_right)
+        facing_row.addStretch()
+        layout.addLayout(facing_row)
+
         # --- Video player ---
         self._player = VideoPlayer()
         layout.addWidget(self._player, stretch=1)
@@ -76,6 +100,19 @@ class VideoCaptureView(QWidget):
         layout.addLayout(btn_row)
 
     # ------------------------------------------------------------------ API
+
+    def _set_facing(self, side: str) -> None:
+        self._facing = side
+        self._update_facing_buttons()
+
+    def _update_facing_buttons(self) -> None:
+        self._btn_left.setChecked(self._facing == "left")
+        self._btn_right.setChecked(self._facing == "right")
+
+    @property
+    def facing_side(self) -> str:
+        """Return 'left' or 'right' depending on which way the cyclist faces."""
+        return self._facing
 
     @property
     def video_path(self) -> str | None:

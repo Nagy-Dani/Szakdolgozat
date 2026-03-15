@@ -82,17 +82,22 @@ class AppController:
             f"Video loaded: {info.width}×{info.height}, "
             f"{info.fps:.0f} fps, {info.duration_sec:.1f}s"
         )
+        # Pass facing side from video page to analysis view
+        side = self._window.video_view.facing_side
+        self._window.analysis_view.facing_side = side
         self._window.navigate_to(self.PAGE_ANALYSIS)
         # Start pose detection
         self._pose_ctrl.start_analysis(path)
 
     def _on_pose_complete(self, sequence: PoseSequence) -> None:
         self._pose_sequence = sequence
+        side = self._window.video_view.facing_side
+        valid_count = len(sequence.get_valid_frames(side))
         self._window.set_status(
-            f"Pose detection complete — {len(sequence.valid_frames)} valid frames"
+            f"Pose detection complete — {valid_count} valid frames"
         )
         # Run analysis
-        self._analysis_ctrl.analyze(sequence, self._rider, self._bike)
+        self._analysis_ctrl.analyze(sequence, self._rider, self._bike, side=side)
 
     def _on_analysis_complete(self, fit_score, recommendations) -> None:
         self._window.set_status(
