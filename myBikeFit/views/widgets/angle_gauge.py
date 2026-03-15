@@ -91,4 +91,16 @@ class AngleGauge(QWidget):
         label_rect = QRectF(0, h + 4, w, 20)
         painter.drawText(label_rect, Qt.AlignmentFlag.AlignHCenter, self._label)
 
+        # Range text (smaller, gray) on left and right ends of the arc
+        range_font = QFont("Segoe UI", 9, QFont.Weight.Bold)
+        painter.setFont(range_font)
+        painter.setPen(QColor("#a6adc8"))
+        
+        y_pos = rect.bottom() - 10
+        min_rect = QRectF(rect.left() - 15, y_pos, 40, 20)
+        max_rect = QRectF(rect.right() - 25, y_pos, 40, 20)
+        
+        painter.drawText(min_rect, Qt.AlignmentFlag.AlignCenter, f"{self._ideal_min:.0f}°")
+        painter.drawText(max_rect, Qt.AlignmentFlag.AlignCenter, f"{self._ideal_max:.0f}°")
+
         painter.end()

@@ -17,7 +17,7 @@ POSE_MIN_DETECTION_CONFIDENCE = 0.5
 POSE_MIN_TRACKING_CONFIDENCE = 0.5
 
 # Frame sampling — process every Nth frame for performance
-FRAME_SAMPLE_RATE = 2
+FRAME_SAMPLE_RATE = 1
 
 # Smoothing window for angle readings
 ANGLE_SMOOTHING_WINDOW = 5
@@ -26,7 +26,7 @@ ANGLE_SMOOTHING_WINDOW = 5
 MIN_PEDAL_CYCLES = 3
 
 # Persistence
-AUTOSAVE_DIR = "~/.myvelofit/sessions"
+AUTOSAVE_DIR = "~/.mybikefit/sessions"
 
 # UI
 WINDOW_MIN_WIDTH = 1200

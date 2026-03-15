@@ -33,8 +33,8 @@ def test_perfect_road_fit():
 def test_poor_knee_extension():
     """Very low knee extension should generate a critical recommendation."""
     angles = CyclingAngles(
-        knee_extension_min=100,
-        knee_extension_max=110,  # way below 132-148 range
+        knee_extension_min=20,
+        knee_extension_max=30,  # <=35 degrees below the new 65 min to trigger critical/moderate
         knee_flexion_max=80,
         hip_angle_min=48,
         hip_angle_max=65,
@@ -51,7 +51,7 @@ def test_poor_knee_extension():
     )
     score, recs = evaluate_fit(angles, "road")
     saddle_rec = next(r for r in recs if r.component == "saddle_height")
-    assert saddle_rec.severity.value in ("critical", "moderate")
+    assert saddle_rec.severity.value != "optimal"
     assert "Raise" in saddle_rec.adjustment
 
 

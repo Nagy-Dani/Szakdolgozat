@@ -82,6 +82,9 @@ class AppController:
             f"Video loaded: {info.width}×{info.height}, "
             f"{info.fps:.0f} fps, {info.duration_sec:.1f}s"
         )
+        # Reload ranges from config in case the JSON was edited
+        self._update_analysis_ranges()
+        
         # Pass facing side from video page to analysis view
         side = self._window.video_view.facing_side
         self._window.analysis_view.facing_side = side

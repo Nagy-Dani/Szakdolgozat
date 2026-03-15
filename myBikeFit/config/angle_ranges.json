@@ -1,7 +1,7 @@
 {
   "road": {
     "knee_extension": {
-      "min": 132,
+      "min": 65,
       "max": 148,
       "weight": 30
     },
@@ -12,7 +12,7 @@
     },
     "hip_angle": {
       "min": 44,
-      "max": 58,
+      "max": 110,
       "weight": 20
     },
     "back_angle": {

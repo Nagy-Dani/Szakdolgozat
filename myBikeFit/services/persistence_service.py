@@ -22,7 +22,7 @@ def save_session(
     Returns the path of the saved file.
     """
     if path is None:
-        save_dir = Path.home() / ".myvelofit" / "sessions"
+        save_dir = Path.home() / ".mybikefit" / "sessions"
         save_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         name = rider.name or "session"

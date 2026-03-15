@@ -479,9 +479,9 @@ Video File ─────────┤
 | Method | Returns | Description |
 |---|---|---|
 | `get(name)` | `BodyLandmark \| None` | Lookup landmark by name (e.g., "left_knee") |
-| `is_complete` (property) | `bool` | `True` if all 8 cycling-critical left-side landmarks have visibility > 0.5 |
+| `is_complete(side)` | `bool` | `True` if all 8 cycling-critical landmarks for the given side have visibility > 0.5 |
 
-Required landmarks for `is_complete`: `left_hip`, `left_knee`, `left_ankle`, `left_shoulder`, `left_elbow`, `left_wrist`, `left_heel`, `left_foot_index`.
+Required landmarks for `is_complete` (dynamic based on side): `[side]_hip`, `[side]_knee`, `[side]_ankle`, `[side]_shoulder`, `[side]_elbow`, `[side]_wrist`, `[side]_heel`, `[side]_foot_index`.
 
 **PoseSequence methods:**
 
@@ -489,7 +489,7 @@ Required landmarks for `is_complete`: `left_hip`, `left_knee`, `left_ankle`, `le
 |---|---|---|
 | `add_frame(frame)` | None | Appends a PoseFrame |
 | `duration_sec` (property) | `float` | total_frames / fps |
-| `valid_frames` (property) | `list[PoseFrame]` | Filters to only `is_complete` frames |
+| `get_valid_frames(side)` | `list[PoseFrame]` | Filters to only `is_complete` frames for the specified side |
 
 ---
 
@@ -508,9 +508,14 @@ Required landmarks for `is_complete`: `left_hip`, `left_knee`, `left_ankle`, `le
 | `knee_extension_max` | — | At top dead centre (TDC) |
 | `knee_flexion_max` | 65–75° | Max knee bend at TDC |
 | `hip_angle_min` | 40–55° | Torso-thigh angle at TDC |
-| `back_angle` | 35–45° | Torso vs horizontal (mean) |
+| `back_angle` | 35–45° | Torso vs horizontal |
 | `ankle_angle_min/max` | 90–120° | Through pedal stroke |
 | `elbow_angle` | 150–165° | Elbow bend (mean) |
+| `ankle_angle_at_3` | 90–100° | Ankle angle when crank is at 3 o'clock |
+| `foot_ground_at_12` | 20–30° | Foot-to-ground angle at TDC |
+| `foot_ground_at_3` | 0–10° | Foot-to-ground angle at 3 o'clock |
+| `foot_ground_at_6` | 10–20° | Foot-to-ground angle at BDC |
+| `ankle_total_range` | — | Total ankle movement range |
 
 **FitScore fields & properties:**
 
@@ -841,7 +846,7 @@ __init__(results_view: ResultsView)
 
 ### 11.2 `services/pose_service.py` — `PoseDetector`
 
-Wraps `mediapipe.solutions.pose`.
+Wraps `mediapipe.tasks.vision.PoseLandmarker`.
 
 **Landmark mapping** (17 cycling-relevant points):
 ```
@@ -858,7 +863,7 @@ Wraps `mediapipe.solutions.pose`.
 
 | Method | Signature | Description |
 |---|---|---|
-| `detect(frame, frame_number, timestamp_ms)` | `→ PoseFrame \| None` | Run MediaPipe on BGR frame → PoseFrame with BodyLandmarks |
+| `detect(frame, frame_number, timestamp_ms)` | `→ PoseFrame \| None` | Run MediaPipe Tasks API on RGB frame → PoseFrame with BodyLandmarks |
 | `draw_skeleton(frame)` | `→ ndarray` | Draw green skeleton overlay on a copy of the frame |
 | `close()` | `→ None` | Release MediaPipe resources |
 
@@ -963,10 +968,10 @@ Weights from `angle_ranges.json` (default road): knee=30, hip=20, back=15, ankle
 | `POSE_MODEL_COMPLEXITY` | `2` | MediaPipe accuracy (0=lite, 1=full, 2=heavy) |
 | `POSE_MIN_DETECTION_CONFIDENCE` | `0.5` | MediaPipe threshold |
 | `POSE_MIN_TRACKING_CONFIDENCE` | `0.5` | MediaPipe threshold |
-| `FRAME_SAMPLE_RATE` | `2` | Process every Nth frame |
+| `FRAME_SAMPLE_RATE` | `1` | Process every Nth frame (updated for accuracy) |
 | `ANGLE_SMOOTHING_WINDOW` | `5` | Rolling average window |
 | `MIN_PEDAL_CYCLES` | `3` | Minimum cycles for stable analysis |
-| `AUTOSAVE_DIR` | `~/.myvelofit/sessions` | Session file location |
+| `AUTOSAVE_DIR` | `~/.mybikefit/sessions` | Session file location |
 | `WINDOW_MIN_WIDTH` | `1200` | Minimum window size |
 | `WINDOW_MIN_HEIGHT` | `800` | Minimum window size |
 | `SIDEBAR_WIDTH` | `200` | Navigation sidebar width |
@@ -977,14 +982,14 @@ Ideal angle ranges per riding style. Each angle has `min`, `max`, and `weight` f
 
 | Angle | Road | MTB | TT |
 |---|---|---|---|
-| knee_extension | 140–150° (w=30) | 135–150° | 142–152° |
+| knee_extension | 65–148° (w=30) | 135–150° | 142–152° |
 | knee_flexion_max | 65–75° (w=20) | 65–80° | 60–72° |
-| hip_angle | 40–55° (w=20) | 45–65° | 30–45° |
+| hip_angle | 44–110° (w=20) | 45–65° | 30–45° |
 | back_angle | 35–45° (w=15) | 40–55° | 15–30° |
-| ankle_angle | 90–120° (w=10) | 85–120° | 90–115° |
+| ankle_angle | 85–100° (w=10) | 85–120° | 90–115° |
 | elbow_angle | 150–165° (w=5) | 145–170° | 85–100° |
 
-Also includes `gravel` and `commute` profiles.
+Also includes `gravel` and `commute` profiles, plus fine-grained ankle positional metrics (`ankle_angle_at_3`, `foot_ground_at_12`, etc.) which are evaluated by the rules engine.
 
 ---
 
@@ -1121,7 +1126,7 @@ This is a rough approximation: ~2.5mm of saddle height change ≈ 1° of knee ex
 
 ### Save path:
 ```
-~/.myvelofit/sessions/{rider_name}_{YYYYMMDD_HHMMSS}.json
+~/.mybikefit/sessions/{rider_name}_{YYYYMMDD_HHMMSS}.json
 ```
 
 ### JSON structure:
@@ -1228,12 +1233,13 @@ pytest tests/ -v
 | PDF report export | Placeholder | Use `fpdf2` or `reportlab` |
 | Webcam live recording | Not implemented | Add tab in VideoCaptureView |
 | Imperial unit toggle | Not implemented | MeasurementInput.set_unit() + conversion math |
-| Pedal stroke cycle detection | Not implemented | Find local minima of knee Y-coordinate |
+| Pedal stroke cycle detection | **Done** | Finds local minima/maxima of knee angle to identify TDC/BDC/3 o'clock |
 | Rolling angle smoothing | Config exists | Apply window=5 rolling mean to angle readings |
 | Side-view validation | Not implemented | Check landmark Z-value consistency |
 | Bike diagram SVG | Not implemented | Add to BikeInputView showing measurement points |
 | Multi-rider profiles | Not implemented | List/load profiles from persistence |
-| Real-time angle display during analysis | Partial | Gauges exist but not wired to per-frame updates in analysis loop |
+| Real-time angle display during analysis | **Done** | Gauges update live via `PoseController._on_frame(side=side)` |
+| Config hot-reloading | **Done** | Changes to `angle_ranges.json` reload automatically on "Analyze" |
 
 ---
 

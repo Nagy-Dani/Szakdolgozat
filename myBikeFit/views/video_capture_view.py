@@ -108,6 +108,11 @@ class VideoCaptureView(QWidget):
     def _update_facing_buttons(self) -> None:
         self._btn_left.setChecked(self._facing == "left")
         self._btn_right.setChecked(self._facing == "right")
+        
+        # Color indicator for active side
+        active_style = "background-color: #7aa2f7; color: #1e1e2e;"
+        self._btn_left.setStyleSheet(active_style if self._facing == "left" else "")
+        self._btn_right.setStyleSheet(active_style if self._facing == "right" else "")
 
     @property
     def facing_side(self) -> str:
