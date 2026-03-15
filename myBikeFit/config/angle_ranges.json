@@ -29,6 +29,26 @@
       "min": 150,
       "max": 165,
       "weight": 5
+    },
+    "ankle_angle_at_3": {
+      "min": 85,
+      "max": 95,
+      "weight": 0
+    },
+    "foot_ground_at_12": {
+      "min": 15,
+      "max": 35,
+      "weight": 0
+    },
+    "foot_ground_at_3": {
+      "min": 0,
+      "max": 12,
+      "weight": 0
+    },
+    "foot_ground_at_6": {
+      "min": 5,
+      "max": 20,
+      "weight": 0
     }
   },
   "mtb": {

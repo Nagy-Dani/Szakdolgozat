@@ -52,8 +52,19 @@ def calculate_back_angle(shoulder: BodyLandmark, hip: BodyLandmark) -> float:
 
 
 def calculate_ankle_angle(knee: BodyLandmark, ankle: BodyLandmark, toe: BodyLandmark) -> float:
-    """Angle at the ankle (knee-ankle-toe). Ideal ≈ 90-120°."""
+    """Angle at the ankle (knee-ankle-toe). Ideal ≈ 75-105°."""
     return _angle_3p(_lm_xy(knee), _lm_xy(ankle), _lm_xy(toe))
+
+
+def calculate_foot_ground_angle(heel: BodyLandmark, toe: BodyLandmark) -> float:
+    """Angle of the foot (heel→toe) relative to horizontal.
+
+    Positive = toe-down. In image coords Y increases downward,
+    so toe below heel means toe.y > heel.y → positive angle.
+    """
+    dx = toe.x - heel.x
+    dy = toe.y - heel.y  # positive when toe is lower (toe-down)
+    return math.degrees(math.atan2(dy, abs(dx) + 1e-8))
 
 
 def calculate_elbow_angle(shoulder: BodyLandmark, elbow: BodyLandmark, wrist: BodyLandmark) -> float:
@@ -82,8 +93,9 @@ def compute_frame_angles(pose: PoseFrame) -> dict[str, float] | None:
     elbow = get("left_elbow")
     wrist = get("left_wrist")
     toe = get("left_foot_index")
+    heel = get("left_heel")
 
-    if not all([hip, knee, ankle, shoulder, elbow, wrist, toe]):
+    if not all([hip, knee, ankle, shoulder, elbow, wrist, toe, heel]):
         return None
 
     return {
@@ -91,6 +103,7 @@ def compute_frame_angles(pose: PoseFrame) -> dict[str, float] | None:
         "hip_angle": calculate_hip_angle(shoulder, hip, knee),
         "back_angle": calculate_back_angle(shoulder, hip),
         "ankle_angle": calculate_ankle_angle(knee, ankle, toe),
+        "foot_ground_angle": calculate_foot_ground_angle(heel, toe),
         "elbow_angle": calculate_elbow_angle(shoulder, elbow, wrist),
         "shoulder_angle": calculate_shoulder_angle(hip, shoulder, elbow),
     }
@@ -99,16 +112,48 @@ def compute_frame_angles(pose: PoseFrame) -> dict[str, float] | None:
 # ──────────────────────────────────────────── Aggregation over cycles
 
 
+def _find_pedal_positions(knee_angles: list[float]) -> dict[str, int]:
+    """Identify frame indices for key pedal positions using knee angle.
+
+    - TDC (12 o'clock): maximum knee flexion = minimum knee angle
+    - BDC (6 o'clock): maximum knee extension = maximum knee angle
+    - 3 o'clock: midpoint frame between TDC and BDC (descending)
+    """
+    tdc_idx = int(np.argmin(knee_angles))
+    bdc_idx = int(np.argmax(knee_angles))
+
+    # 3 o'clock is roughly halfway between TDC and BDC
+    if tdc_idx < bdc_idx:
+        three_idx = (tdc_idx + bdc_idx) // 2
+    else:
+        # TDC is after BDC in this sequence — wrap around
+        mid = (tdc_idx + bdc_idx + len(knee_angles)) // 2
+        three_idx = mid % len(knee_angles)
+
+    return {"tdc": tdc_idx, "bdc": bdc_idx, "three": three_idx}
+
+
 def aggregate_angles(frames_angles: list[dict[str, float]]) -> CyclingAngles:
     """Aggregate per-frame angle dicts into a single CyclingAngles summary.
 
-    Uses min/max/mean across the pedal stroke for each angle.
+    Uses min/max/mean across the pedal stroke for each angle,
+    and extracts position-specific ankle/foot measurements.
     """
     if not frames_angles:
         return CyclingAngles()
 
     keys = frames_angles[0].keys()
     arrays = {k: [f[k] for f in frames_angles] for k in keys}
+
+    # Detect pedal positions from knee angles
+    positions = _find_pedal_positions(arrays["knee_extension"])
+
+    # Position-specific ankle and foot-ground angles
+    ankle_at_3 = arrays["ankle_angle"][positions["three"]]
+    foot_ground_at_12 = arrays["foot_ground_angle"][positions["tdc"]]
+    foot_ground_at_3 = arrays["foot_ground_angle"][positions["three"]]
+    foot_ground_at_6 = arrays["foot_ground_angle"][positions["bdc"]]
+    ankle_total_range = float(np.max(arrays["ankle_angle"]) - np.min(arrays["ankle_angle"]))
 
     return CyclingAngles(
         knee_extension_min=float(np.min(arrays["knee_extension"])),
@@ -119,6 +164,11 @@ def aggregate_angles(frames_angles: list[dict[str, float]]) -> CyclingAngles:
         back_angle=float(np.mean(arrays["back_angle"])),
         ankle_angle_min=float(np.min(arrays["ankle_angle"])),
         ankle_angle_max=float(np.max(arrays["ankle_angle"])),
+        ankle_angle_at_3=float(ankle_at_3),
+        foot_ground_at_12=float(foot_ground_at_12),
+        foot_ground_at_3=float(foot_ground_at_3),
+        foot_ground_at_6=float(foot_ground_at_6),
+        ankle_total_range=float(ankle_total_range),
         shoulder_angle=float(np.mean(arrays["shoulder_angle"])),
         elbow_angle=float(np.mean(arrays["elbow_angle"])),
     )

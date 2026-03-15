@@ -137,29 +137,130 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Ankle Angle ---
+    # --- Ankle Angle at 3 o'clock (Power Phase) ---
     r = ranges["ankle_angle"]
-    ankle_val = (angles.ankle_angle_min + angles.ankle_angle_max) / 2
-    ankle_score = _score_single(ankle_val, r["min"], r["max"])
-    dev = 0 if r["min"] <= ankle_val <= r["max"] else (
-        r["min"] - ankle_val if ankle_val < r["min"] else ankle_val - r["max"]
+    ankle_at_3 = angles.ankle_angle_at_3
+    ankle_score = _score_single(ankle_at_3, 85, 95)  # Tighter range at power phase
+    dev = 0 if 85 <= ankle_at_3 <= 95 else (
+        85 - ankle_at_3 if ankle_at_3 < 85 else ankle_at_3 - 95
     )
-    sev = _severity_from_deviation(dev, r["max"] - r["min"])
-    if ankle_val < r["min"]:
-        adj = "Reduce toe pointing — check cleat position and saddle height"
-    elif ankle_val > r["max"]:
-        adj = "Check cleat position — foot may be too far forward on pedal"
+    sev = _severity_from_deviation(dev, 10)
+    if ankle_at_3 < 85:
+        adj = "Ankle too dorsiflexed at power phase — check cleat position (may be too far back)"
+    elif ankle_at_3 > 95:
+        adj = "Excessive toe pointing at power phase — check cleat position (may be too far forward)"
     else:
-        adj = "Ankle movement is within normal range"
+        adj = "Ankle position at power phase is ideal"
     recommendations.append(Recommendation(
-        component="cleat_position",
+        component="ankle_power_phase",
         severity=sev,
-        current_value=f"{ankle_val:.1f}°",
-        ideal_range=f"{r['min']}–{r['max']}°",
+        current_value=f"{ankle_at_3:.1f}°",
+        ideal_range="85–95°",
         adjustment=adj,
         explanation=(
-            "Ankle angle through the pedal stroke reveals cleat positioning and "
-            "ankling technique. Excessive toe pointing wastes energy."
+            "At 3 o'clock (power phase), the ankle should be near neutral (90°). "
+            "This is the most powerful foot posture for the down-stroke."
+        ),
+    ))
+
+    # --- Foot-to-Ground at 12 o'clock (TDC) ---
+    r_ft12 = ranges.get("foot_ground_at_12", {"min": 15, "max": 35})
+    ft12 = angles.foot_ground_at_12
+    dev = 0 if r_ft12["min"] <= ft12 <= r_ft12["max"] else (
+        r_ft12["min"] - ft12 if ft12 < r_ft12["min"] else ft12 - r_ft12["max"]
+    )
+    sev = _severity_from_deviation(dev, r_ft12["max"] - r_ft12["min"])
+    if ft12 < r_ft12["min"]:
+        adj = (
+            "Foot too flat at top of stroke — may indicate hip/knee restriction "
+            "or could benefit from shorter cranks"
+        )
+    elif ft12 > r_ft12["max"]:
+        adj = "Excessive toe-down at top of stroke — ankle stability may be compromised"
+    else:
+        adj = "Foot angle at top of pedal stroke is good"
+    recommendations.append(Recommendation(
+        component="foot_angle_tdc",
+        severity=sev,
+        current_value=f"{ft12:.1f}°",
+        ideal_range=f"{r_ft12['min']}–{r_ft12['max']}°",
+        adjustment=adj,
+        explanation=(
+            "At 12 o'clock, a moderate toe-down posture (15-35°) eases the foot "
+            "through the top of the stroke. Too flat may indicate joint restrictions."
+        ),
+    ))
+
+    # --- Foot-to-Ground at 3 o'clock ---
+    r_ft3 = ranges.get("foot_ground_at_3", {"min": 0, "max": 12})
+    ft3 = angles.foot_ground_at_3
+    dev = 0 if r_ft3["min"] <= ft3 <= r_ft3["max"] else (
+        r_ft3["min"] - ft3 if ft3 < r_ft3["min"] else ft3 - r_ft3["max"]
+    )
+    sev = _severity_from_deviation(dev, r_ft3["max"] - r_ft3["min"])
+    if ft3 < r_ft3["min"]:
+        adj = "Heel is too low at power phase — check cleat position"
+    elif ft3 > r_ft3["max"]:
+        adj = "Too much toe-down at power phase — check cleat position or ankle stability"
+    else:
+        adj = "Foot angle at power phase is well positioned"
+    recommendations.append(Recommendation(
+        component="foot_angle_power",
+        severity=sev,
+        current_value=f"{ft3:.1f}°",
+        ideal_range=f"{r_ft3['min']}–{r_ft3['max']}°",
+        adjustment=adj,
+        explanation=(
+            "At 3 o'clock, the foot should be nearly level (0-12° toe-down) "
+            "for maximum power transfer through the pedal."
+        ),
+    ))
+
+    # --- Foot-to-Ground at 6 o'clock (BDC) ---
+    r_ft6 = ranges.get("foot_ground_at_6", {"min": 5, "max": 20})
+    ft6 = angles.foot_ground_at_6
+    dev = 0 if r_ft6["min"] <= ft6 <= r_ft6["max"] else (
+        r_ft6["min"] - ft6 if ft6 < r_ft6["min"] else ft6 - r_ft6["max"]
+    )
+    sev = _severity_from_deviation(dev, r_ft6["max"] - r_ft6["min"])
+    if ft6 < r_ft6["min"]:
+        adj = "Foot too flat at bottom — may indicate low saddle or poor cleat position"
+    elif ft6 > r_ft6["max"]:
+        adj = "Too much toe-down at bottom — saddle may be too high or cleat too far forward"
+    else:
+        adj = "Foot angle at bottom of stroke is normal"
+    recommendations.append(Recommendation(
+        component="foot_angle_bdc",
+        severity=sev,
+        current_value=f"{ft6:.1f}°",
+        ideal_range=f"{r_ft6['min']}–{r_ft6['max']}°",
+        adjustment=adj,
+        explanation=(
+            "At 6 o'clock, a slight toe-down (5-20°) eases the foot through "
+            "the bottom of the stroke for a smooth transition to recovery."
+        ),
+    ))
+
+    # --- Ankle Coordination ---
+    coord_range = angles.ankle_total_range
+    if coord_range < 10:
+        sev = Severity.MINOR
+        adj = "Very little ankle movement — pedal stroke may lack dynamic coordination"
+    elif coord_range > 30:
+        sev = Severity.MINOR
+        adj = "Excessive ankle movement — may indicate unstable foot/ankle mechanics"
+    else:
+        sev = Severity.OPTIMAL
+        adj = "Ankle coordination through the pedal stroke is good"
+    recommendations.append(Recommendation(
+        component="ankle_coordination",
+        severity=sev,
+        current_value=f"{coord_range:.1f}°",
+        ideal_range="10–30°",
+        adjustment=adj,
+        explanation=(
+            "Total ankle range of motion indicates pedal stroke coordination. "
+            "Too little suggests a rigid stroke; too much may indicate instability."
         ),
     ))
 
@@ -190,14 +291,20 @@ def evaluate_fit(
     ))
 
     # --- Overall score (weighted) ---
-    weights = {k: v["weight"] for k, v in ranges.items()}
-    total_weight = sum(weights.values())
+    # Only use weights for the 5 components that are actually scored
+    w_knee = ranges.get("knee_extension", {}).get("weight", 30)
+    w_hip = ranges.get("hip_angle", {}).get("weight", 20)
+    w_back = ranges.get("back_angle", {}).get("weight", 15)
+    w_ankle = ranges.get("ankle_angle", {}).get("weight", 10)
+    w_elbow = ranges.get("elbow_angle", {}).get("weight", 5)
+    total_weight = w_knee + w_hip + w_back + w_ankle + w_elbow
+
     overall = (
-        knee_score * weights.get("knee_extension", 30)
-        + hip_score * weights.get("hip_angle", 20)
-        + back_score * weights.get("back_angle", 15)
-        + ankle_score * weights.get("ankle_angle", 10)
-        + reach_score * weights.get("elbow_angle", 5)
+        knee_score * w_knee
+        + hip_score * w_hip
+        + back_score * w_back
+        + ankle_score * w_ankle
+        + reach_score * w_elbow
     ) / total_weight
 
     fit_score = FitScore(

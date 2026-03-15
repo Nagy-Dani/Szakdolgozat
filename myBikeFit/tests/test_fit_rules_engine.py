@@ -9,14 +9,19 @@ from services.fit_rules_engine import evaluate_fit
 def test_perfect_road_fit():
     """Angles within ideal road ranges should score highly."""
     angles = CyclingAngles(
-        knee_extension_min=145,
-        knee_extension_max=160,
+        knee_extension_min=135,
+        knee_extension_max=140,
         knee_flexion_max=70,
-        hip_angle_min=48,
+        hip_angle_min=50,
         hip_angle_max=65,
         back_angle=40,
-        ankle_angle_min=100,
-        ankle_angle_max=110,
+        ankle_angle_min=82,
+        ankle_angle_max=100,
+        ankle_angle_at_3=90,
+        foot_ground_at_12=25,
+        foot_ground_at_3=6,
+        foot_ground_at_6=12,
+        ankle_total_range=18,
         shoulder_angle=45,
         elbow_angle=158,
     )
@@ -26,16 +31,21 @@ def test_perfect_road_fit():
 
 
 def test_poor_knee_extension():
-    """Low knee extension should generate a critical recommendation."""
+    """Very low knee extension should generate a critical recommendation."""
     angles = CyclingAngles(
-        knee_extension_min=120,  # way too low
-        knee_extension_max=150,
-        knee_flexion_max=60,
+        knee_extension_min=100,
+        knee_extension_max=110,  # way below 132-148 range
+        knee_flexion_max=80,
         hip_angle_min=48,
         hip_angle_max=65,
         back_angle=40,
-        ankle_angle_min=100,
-        ankle_angle_max=110,
+        ankle_angle_min=85,
+        ankle_angle_max=100,
+        ankle_angle_at_3=90,
+        foot_ground_at_12=25,
+        foot_ground_at_3=6,
+        foot_ground_at_6=12,
+        ankle_total_range=15,
         shoulder_angle=45,
         elbow_angle=158,
     )
@@ -48,10 +58,12 @@ def test_poor_knee_extension():
 def test_different_styles_return_results():
     """All riding styles should produce valid results."""
     angles = CyclingAngles(
-        knee_extension_min=145, knee_extension_max=160,
+        knee_extension_min=140, knee_extension_max=150,
         knee_flexion_max=70, hip_angle_min=48, hip_angle_max=65,
-        back_angle=40, ankle_angle_min=100, ankle_angle_max=110,
-        shoulder_angle=45, elbow_angle=158,
+        back_angle=40, ankle_angle_min=85, ankle_angle_max=100,
+        ankle_angle_at_3=90, foot_ground_at_12=25,
+        foot_ground_at_3=6, foot_ground_at_6=12,
+        ankle_total_range=15, shoulder_angle=45, elbow_angle=158,
     )
     for style in ["road", "mtb", "tt", "gravel", "commute"]:
         score, recs = evaluate_fit(angles, style)

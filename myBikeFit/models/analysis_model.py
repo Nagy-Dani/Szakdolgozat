@@ -17,6 +17,11 @@ class CyclingAngles:
     back_angle: float = 0.0           # Torso relative to horizontal (ideal ≈ 35-45° road)
     ankle_angle_min: float = 0.0      # Minimum ankle through stroke
     ankle_angle_max: float = 0.0      # Maximum ankle through stroke
+    ankle_angle_at_3: float = 0.0     # Ankle at 3 o'clock (power phase, ideal 85-95°)
+    foot_ground_at_12: float = 0.0    # Foot-to-ground at TDC (ideal 15-35°)
+    foot_ground_at_3: float = 0.0     # Foot-to-ground at 3 o'clock (ideal 0-12°)
+    foot_ground_at_6: float = 0.0     # Foot-to-ground at BDC (ideal 5-20°)
+    ankle_total_range: float = 0.0    # Max-min ankle angle (coordination indicator)
     shoulder_angle: float = 0.0       # Upper arm to torso
     elbow_angle: float = 0.0          # Elbow bend (ideal ≈ 150-165°)
 
