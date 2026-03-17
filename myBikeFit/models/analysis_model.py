@@ -45,6 +45,7 @@ class FitScore:
     back_score: float = 0.0
     ankle_score: float = 0.0
     reach_score: float = 0.0
+    geometry_score: float = 0.0
 
     @property
     def category(self) -> str:

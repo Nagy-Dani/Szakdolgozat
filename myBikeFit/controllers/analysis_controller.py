@@ -63,7 +63,8 @@ class AnalysisController:
         # 3. Generate fit score and recommendations
         self._fit_score, self._recommendations = evaluate_fit(
             self._angles,
-            riding_style=rider.riding_style.value,
+            rider=rider,
+            bike=bike,
         )
 
         # 4. Push to results view

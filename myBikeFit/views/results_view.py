@@ -43,9 +43,12 @@ class ResultsView(QWidget):
         self._gauge_back = AngleGauge("Back", 0, 100)
         self._gauge_ankle = AngleGauge("Ankle", 0, 100)
         self._gauge_reach = AngleGauge("Reach", 0, 100)
+        
+        self._gauge_sizing = AngleGauge("Sizing", 0, 100)
+        self._gauge_sizing.hide()  # hidden by default until score > 0
 
         for g in [self._gauge_knee, self._gauge_hip, self._gauge_back,
-                  self._gauge_ankle, self._gauge_reach]:
+                  self._gauge_ankle, self._gauge_reach, self._gauge_sizing]:
             scores_row.addWidget(g)
 
         layout.addLayout(scores_row)
@@ -98,6 +101,13 @@ class ResultsView(QWidget):
         self._gauge_back.set_value(scores.back_score)
         self._gauge_ankle.set_value(scores.ankle_score)
         self._gauge_reach.set_value(scores.reach_score)
+        
+        # Only show sizing gauge if geometry was calculated (score > 0)
+        if scores.geometry_score > 0:
+            self._gauge_sizing.set_value(scores.geometry_score)
+            self._gauge_sizing.show()
+        else:
+            self._gauge_sizing.hide()
 
         self._category_label.setText(scores.category.upper())
         self._category_label.setStyleSheet(f"color: {scores.category_color};")

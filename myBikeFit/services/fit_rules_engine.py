@@ -7,6 +7,8 @@ from pathlib import Path
 
 from models.analysis_model import CyclingAngles, FitScore
 from models.recommendation_model import Recommendation, Severity
+from models.rider_model import RiderMeasurements
+from models.bike_model import BikeGeometry
 
 
 def _load_ranges() -> dict:
@@ -45,13 +47,15 @@ def _score_single(value: float, ideal_min: float, ideal_max: float) -> float:
 
 def evaluate_fit(
     angles: CyclingAngles,
-    riding_style: str = "road",
+    rider: RiderMeasurements,
+    bike: BikeGeometry,
 ) -> tuple[FitScore, list[Recommendation]]:
-    """Evaluate cycling angles against ideal ranges and generate recommendations.
+    """Evaluate cycling angles and geometric measurements against ideal ranges.
 
     Returns (FitScore, list[Recommendation]).
     """
     all_ranges = _load_ranges()
+    riding_style = rider.riding_style.value if rider else "road"
     ranges = all_ranges.get(riding_style, all_ranges["road"])
 
     recommendations: list[Recommendation] = []
@@ -290,14 +294,147 @@ def evaluate_fit(
         ),
     ))
 
+    # ──────────────────────────────────────────── Geometric Sizing Checks
+    # Only run these if the user actually input non-zero measurements
+
+    has_measurements = (
+        rider and bike and
+        rider.inseam_cm > 0 and
+        bike.saddle_height_cm > 0
+    )
+
+    if has_measurements:
+        geom_scores: list[float] = []
+
+        # 1. Saddle Height vs Inseam (LeMond)
+        ideal_saddle = rider.inseam_cm * 0.883
+        actual_saddle = bike.saddle_height_cm
+        diff = abs(actual_saddle - ideal_saddle)
+        geom_scores.append(_score_single(actual_saddle, ideal_saddle - 1.0, ideal_saddle + 1.0))
+        
+        if diff <= 1.0:
+            sev, adj = Severity.OPTIMAL, "Saddle height perfectly matches your inseam"
+        elif diff <= 2.5:
+            sev, adj = Severity.MINOR, (
+                f"Saddle is slightly {'high' if actual_saddle > ideal_saddle else 'low'} "
+                f"for your inseam (ideal ≈ {ideal_saddle:.1f} cm)"
+            )
+        else:
+            sev, adj = Severity.MODERATE, (
+                f"Saddle is significantly {'high' if actual_saddle > ideal_saddle else 'low'} "
+                f"for your inseam (ideal ≈ {ideal_saddle:.1f} cm)"
+            )
+        recommendations.append(Recommendation(
+            component="saddle_height_geometric",
+            severity=sev,
+            current_value=f"{actual_saddle:.1f} cm",
+            ideal_range=f"{ideal_saddle - 1.0:.1f}–{ideal_saddle + 1.0:.1f} cm",
+            adjustment=adj,
+            explanation=(
+                "Based on the LeMond formula, ideal saddle height is 88.3% of your inseam. "
+                "This serves as a starting point before fine-tuning via knee angle."
+            ),
+        ))
+
+        # 2. Frame Size vs Inseam
+        if bike.frame_size_cm > 0:
+            mult = 0.574 if riding_style == "mtb" else 0.66
+            ideal_frame = rider.inseam_cm * mult
+            actual_frame = bike.frame_size_cm
+            f_diff = abs(actual_frame - ideal_frame)
+            geom_scores.append(_score_single(actual_frame, ideal_frame - 2.0, ideal_frame + 2.0))
+            
+            if f_diff <= 2.0:
+                sev, adj = Severity.OPTIMAL, "Frame size is ideal for your leg length"
+            elif f_diff <= 4.0:
+                sev, adj = Severity.MINOR, (
+                    f"Frame is slightly {'large' if actual_frame > ideal_frame else 'small'} "
+                    f"for your leg length (ideal ≈ {ideal_frame:.1f} cm)"
+                )
+            else:
+                sev, adj = Severity.MODERATE, (
+                    f"Frame is significantly {'large' if actual_frame > ideal_frame else 'small'} "
+                    f"for your leg length (ideal ≈ {ideal_frame:.1f} cm)"
+                )
+            recommendations.append(Recommendation(
+                component="frame_size",
+                severity=sev,
+                current_value=f"{actual_frame:.1f} cm",
+                ideal_range=f"{ideal_frame - 2.0:.1f}–{ideal_frame + 2.0:.1f} cm",
+                adjustment=adj,
+                explanation="Frame size dictates standover height and overall bike proportion relative to your legs.",
+            ))
+
+        # 3. Crank Length vs Inseam
+        if bike.crank_length_mm > 0:
+            ideal_crank = (rider.inseam_cm * 1.25) + 65.0
+            actual_crank = bike.crank_length_mm
+            c_diff = abs(actual_crank - ideal_crank)
+            geom_scores.append(_score_single(actual_crank, ideal_crank - 2.5, ideal_crank + 2.5))
+            
+            if c_diff <= 2.5:
+                sev, adj = Severity.OPTIMAL, "Crank length perfectly matches your leg proportions"
+            elif c_diff <= 5.0:
+                sev, adj = Severity.MINOR, (
+                    f"Cranks are slightly {'long' if actual_crank > ideal_crank else 'short'} "
+                    f"(ideal ≈ {ideal_crank:.1f} mm)"
+                )
+            else:
+                sev, adj = Severity.MODERATE, (
+                    f"Cranks are significantly {'long' if actual_crank > ideal_crank else 'short'} "
+                    f"(ideal ≈ {ideal_crank:.1f} mm)"
+                )
+            recommendations.append(Recommendation(
+                component="crank_length",
+                severity=sev,
+                current_value=f"{actual_crank:.1f} mm",
+                ideal_range=f"{ideal_crank - 2.5:.1f}–{ideal_crank + 2.5:.1f} mm",
+                adjustment=adj,
+                explanation="Proper crank length prevents excessive knee flexion at the top of the pedal stroke.",
+            ))
+
+        # 4. Overall Reach vs Frame Size
+        if bike.handlebar_reach_cm > 0 and bike.frame_size_cm > 0:
+            ideal_reach = (365.0 + (0.85 * bike.frame_size_cm)) / 10.0  # Convert mm formula to cm
+            actual_reach = bike.handlebar_reach_cm
+            r_diff = abs(actual_reach - ideal_reach)
+            geom_scores.append(_score_single(actual_reach, ideal_reach - 2.0, ideal_reach + 2.0))
+            
+            if r_diff <= 2.0:
+                sev, adj = Severity.OPTIMAL, "Reach matches your frame size perfectly"
+            elif r_diff <= 4.0:
+                sev, adj = Severity.MINOR, (
+                    f"Reach is slightly {'long' if actual_reach > ideal_reach else 'short'} "
+                    f"(ideal ≈ {ideal_reach:.1f} cm)"
+                )
+            else:
+                sev, adj = Severity.MODERATE, (
+                    f"Reach is significantly {'long' if actual_reach > ideal_reach else 'short'} "
+                    f"(ideal ≈ {ideal_reach:.1f} cm)"
+                )
+            recommendations.append(Recommendation(
+                component="overall_reach",
+                severity=sev,
+                current_value=f"{actual_reach:.1f} cm",
+                ideal_range=f"{ideal_reach - 2.0:.1f}–{ideal_reach + 2.0:.1f} cm",
+                adjustment=adj,
+                explanation="Ideal reach balances your extension based on the frame size to prevent back/neck strain.",
+            ))
     # --- Overall score (weighted) ---
+    geometry_score = 0.0
+    w_geom = 0
+
+    if has_measurements and 'geom_scores' in locals() and geom_scores:
+        geometry_score = sum(geom_scores) / len(geom_scores)
+        w_geom = ranges.get("geometry", {}).get("weight", 20)
+        
     # Only use weights for the 5 components that are actually scored
     w_knee = ranges.get("knee_extension", {}).get("weight", 30)
     w_hip = ranges.get("hip_angle", {}).get("weight", 20)
     w_back = ranges.get("back_angle", {}).get("weight", 15)
     w_ankle = ranges.get("ankle_angle", {}).get("weight", 10)
     w_elbow = ranges.get("elbow_angle", {}).get("weight", 5)
-    total_weight = w_knee + w_hip + w_back + w_ankle + w_elbow
+    total_weight = w_knee + w_hip + w_back + w_ankle + w_elbow + w_geom
 
     overall = (
         knee_score * w_knee
@@ -305,6 +442,7 @@ def evaluate_fit(
         + back_score * w_back
         + ankle_score * w_ankle
         + reach_score * w_elbow
+        + geometry_score * w_geom
     ) / total_weight
 
     fit_score = FitScore(
@@ -314,6 +452,7 @@ def evaluate_fit(
         back_score=round(back_score, 1),
         ankle_score=round(ankle_score, 1),
         reach_score=round(reach_score, 1),
+        geometry_score=round(geometry_score, 1),
     )
 
     # Sort recommendations by severity (critical first)
