@@ -142,16 +142,16 @@ def evaluate_fit(
     ))
 
     # --- Ankle Angle at 3 o'clock (Power Phase) ---
-    r = ranges["ankle_angle"]
+    r_ank = ranges.get("ankle_angle_at_3", {"min": 100, "max": 120})
     ankle_at_3 = angles.ankle_angle_at_3
-    ankle_score = _score_single(ankle_at_3, 85, 95)  # Tighter range at power phase
-    dev = 0 if 85 <= ankle_at_3 <= 95 else (
-        85 - ankle_at_3 if ankle_at_3 < 85 else ankle_at_3 - 95
+    ankle_score = _score_single(ankle_at_3, r_ank["min"], r_ank["max"])
+    dev = 0 if r_ank["min"] <= ankle_at_3 <= r_ank["max"] else (
+        r_ank["min"] - ankle_at_3 if ankle_at_3 < r_ank["min"] else ankle_at_3 - r_ank["max"]
     )
-    sev = _severity_from_deviation(dev, 10)
-    if ankle_at_3 < 85:
+    sev = _severity_from_deviation(dev, r_ank["max"] - r_ank["min"])
+    if ankle_at_3 < r_ank["min"]:
         adj = "Ankle too dorsiflexed at power phase — check cleat position (may be too far back)"
-    elif ankle_at_3 > 95:
+    elif ankle_at_3 > r_ank["max"]:
         adj = "Excessive toe pointing at power phase — check cleat position (may be too far forward)"
     else:
         adj = "Ankle position at power phase is ideal"
@@ -159,10 +159,10 @@ def evaluate_fit(
         component="ankle_power_phase",
         severity=sev,
         current_value=f"{ankle_at_3:.1f}°",
-        ideal_range="85–95°",
+        ideal_range=f"{r_ank['min']}–{r_ank['max']}°",
         adjustment=adj,
         explanation=(
-            "At 3 o'clock (power phase), the ankle should be near neutral (90°). "
+            "At 3 o'clock (power phase), the ankle should be slightly pointed down (100-120° in MediaPipe tracking). "
             "This is the most powerful foot posture for the down-stroke."
         ),
     ))

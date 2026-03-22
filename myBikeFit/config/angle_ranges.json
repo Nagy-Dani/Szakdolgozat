@@ -21,8 +21,8 @@
       "weight": 15
     },
     "ankle_angle": {
-      "min": 75,
-      "max": 105,
+      "min": 95,
+      "max": 135,
       "weight": 10
     },
     "elbow_angle": {
@@ -31,8 +31,8 @@
       "weight": 5
     },
     "ankle_angle_at_3": {
-      "min": 85,
-      "max": 95,
+      "min": 100,
+      "max": 120,
       "weight": 0
     },
     "foot_ground_at_12": {
@@ -73,8 +73,8 @@
       "weight": 15
     },
     "ankle_angle": {
-      "min": 85,
-      "max": 120,
+      "min": 100,
+      "max": 145,
       "weight": 10
     },
     "elbow_angle": {
@@ -105,8 +105,8 @@
       "weight": 15
     },
     "ankle_angle": {
-      "min": 90,
-      "max": 115,
+      "min": 105,
+      "max": 140,
       "weight": 10
     },
     "elbow_angle": {
@@ -137,8 +137,8 @@
       "weight": 15
     },
     "ankle_angle": {
-      "min": 88,
-      "max": 120,
+      "min": 100,
+      "max": 145,
       "weight": 10
     },
     "elbow_angle": {
@@ -169,8 +169,8 @@
       "weight": 15
     },
     "ankle_angle": {
-      "min": 85,
-      "max": 125,
+      "min": 95,
+      "max": 145,
       "weight": 10
     },
     "elbow_angle": {
