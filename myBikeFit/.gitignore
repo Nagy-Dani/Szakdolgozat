@@ -1,0 +1,98 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Distribution
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.pydevproject
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Linters and Type Checkers
+.mypy_cache/
+.ruff_cache/
+.pylint.d/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Application Specific / MediaPipe Models
+assets/models/*.task
+assets/models/*.tflite
+assets/models/*.pb
+*.sqlite3
+*.db
+
+# Log files
+*.log
+
+# Exported / generated output
+output/
+exports/
+
+# AI assistant directories
+.gemini/
+.agent/
+.agents/
+
+# Videos for testing
+videos/
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Local Sessions
+sessions/
