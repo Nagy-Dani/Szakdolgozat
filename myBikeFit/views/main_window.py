@@ -27,7 +27,15 @@ class MainWindow(QMainWindow):
     load_session_requested = pyqtSignal()
     export_pdf_requested = pyqtSignal()
 
-    PAGES = ["Rider", "Bike", "Video", "Analysis", "Results"]
+    PAGES = [
+        "Rider",
+        "Bike",
+        "Video",
+        "Side Analysis",
+        "Front Analysis",
+        "Back Analysis",
+        "Results",
+    ]
 
     def __init__(self):
         super().__init__()
@@ -38,8 +46,13 @@ class MainWindow(QMainWindow):
         self.rider_view = RiderInputView()
         self.bike_view = BikeInputView()
         self.video_view = VideoCaptureView()
-        self.analysis_view = AnalysisView()
+        self.side_analysis_view = AnalysisView(view_type="side")
+        self.front_analysis_view = AnalysisView(view_type="front")
+        self.back_analysis_view = AnalysisView(view_type="back")
         self.results_view = ResultsView()
+
+        # Backward-compatible alias
+        self.analysis_view = self.side_analysis_view
 
         self._setup_menu()
         self._setup_ui()
@@ -109,11 +122,13 @@ class MainWindow(QMainWindow):
 
         # --- Content stack ---
         self._stack = QStackedWidget()
-        self._stack.addWidget(self.rider_view)
-        self._stack.addWidget(self.bike_view)
-        self._stack.addWidget(self.video_view)
-        self._stack.addWidget(self.analysis_view)
-        self._stack.addWidget(self.results_view)
+        self._stack.addWidget(self.rider_view)          # 0
+        self._stack.addWidget(self.bike_view)            # 1
+        self._stack.addWidget(self.video_view)           # 2
+        self._stack.addWidget(self.side_analysis_view)   # 3
+        self._stack.addWidget(self.front_analysis_view)  # 4
+        self._stack.addWidget(self.back_analysis_view)   # 5
+        self._stack.addWidget(self.results_view)         # 6
         main_layout.addWidget(self._stack, stretch=1)
 
         # Default selection
@@ -145,7 +160,7 @@ class MainWindow(QMainWindow):
             f"<h2>{APP_NAME}</h2>"
             f"<p>Version {APP_VERSION}</p>"
             f"<p>AI-powered bike fitting assistant.</p>"
-            f"<p>Upload a side-view video of yourself pedaling, enter your "
-            f"body measurements, and get actionable recommendations to "
-            f"optimize your bike fit.</p>",
+            f"<p>Upload cycling videos from side, front, and back views, "
+            f"enter your body measurements, and get actionable recommendations "
+            f"to optimize your bike fit.</p>",
         )

@@ -122,13 +122,7 @@ class PoseController:
         if angles:
             # Cache angles so they can be looked up when scrubbing
             self._frame_angles[frame_num] = angles
-            self._view.update_gauges(
-                knee_ext=angles["knee_extension"],
-                hip=angles["hip_angle"],
-                back=angles["back_angle"],
-                ankle=angles["ankle_angle"],
-                elbow=angles["elbow_angle"],
-            )
+            self._view.update_gauges(**angles)
 
     def _on_frame_changed(self, frame_num: int, raw_frame: np.ndarray) -> None:
         """Update gauges when the user scrubs to a different frame."""
@@ -137,13 +131,7 @@ class PoseController:
         # Find the nearest cached frame (not every frame is sampled)
         nearest = min(self._frame_angles, key=lambda k: abs(k - frame_num))
         angles = self._frame_angles[nearest]
-        self._view.update_gauges(
-            knee_ext=angles["knee_extension"],
-            hip=angles["hip_angle"],
-            back=angles["back_angle"],
-            ankle=angles["ankle_angle"],
-            elbow=angles["elbow_angle"],
-        )
+        self._view.update_gauges(**angles)
 
     def _on_finished(self, sequence: PoseSequence) -> None:
         if self._on_complete_callback:

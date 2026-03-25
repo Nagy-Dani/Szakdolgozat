@@ -21,12 +21,17 @@ from services.persistence_service import save_session, load_session
 class AppController:
     """Creates all sub-controllers, connects the navigation flow."""
 
-    # Page indices
+    # Page indices (must match MainWindow.PAGES order)
     PAGE_RIDER = 0
     PAGE_BIKE = 1
     PAGE_VIDEO = 2
-    PAGE_ANALYSIS = 3
-    PAGE_RESULTS = 4
+    PAGE_SIDE_ANALYSIS = 3
+    PAGE_FRONT_ANALYSIS = 4
+    PAGE_BACK_ANALYSIS = 5
+    PAGE_RESULTS = 6
+
+    # Keep backward-compatible aliases
+    PAGE_ANALYSIS = PAGE_SIDE_ANALYSIS
 
     def __init__(self, window: MainWindow):
         self._window = window
@@ -34,20 +39,46 @@ class AppController:
         # Models
         self._rider = RiderMeasurements()
         self._bike = BikeGeometry()
-        self._pose_sequence: PoseSequence | None = None
+        self._pose_sequences: dict[str, PoseSequence | None] = {
+            "side": None, "front": None, "back": None,
+        }
 
-        # Sub-controllers
+        # Uploaded video paths (populated when user clicks Analyze)
+        self._video_paths: dict[str, str | None] = {
+            "side": None, "front": None, "back": None,
+        }
+
+        # Sub-controllers — rider, bike, video (single instance)
         self._rider_ctrl = RiderController(window.rider_view, self._rider)
         self._bike_ctrl = BikeController(window.bike_view, self._bike)
         self._video_ctrl = VideoController(window.video_view)
-        self._pose_ctrl = PoseController(window.analysis_view)
+
+        # One PoseController per analysis view
+        self._pose_ctrls: dict[str, PoseController] = {
+            "side":  PoseController(window.side_analysis_view),
+            "front": PoseController(window.front_analysis_view),
+            "back":  PoseController(window.back_analysis_view),
+        }
+
+        # Single analysis controller (aggregates results from all views)
         self._analysis_ctrl = AnalysisController(window.results_view)
+
+        # The analysis pipeline: list of view types to process sequentially
+        self._analysis_queue: list[str] = []
 
         # Wire navigation
         self._rider_ctrl.set_on_valid(self._on_rider_valid)
         self._bike_ctrl.set_on_valid(self._on_bike_valid)
-        self._video_ctrl.set_on_valid(self._on_video_valid)
-        self._pose_ctrl.set_on_complete(self._on_pose_complete)
+
+        # Connect the new multi-video signal
+        window.video_view.videos_ready.connect(self._on_videos_ready)
+
+        # Wire pose completion for each view
+        for view_type, ctrl in self._pose_ctrls.items():
+            ctrl.set_on_complete(
+                lambda seq, vt=view_type: self._on_pose_complete(vt, seq)
+            )
+
         self._analysis_ctrl.set_on_complete(self._on_analysis_complete)
 
         # Menu actions
@@ -77,30 +108,71 @@ class AppController:
         self._window.set_status("Bike geometry saved")
         self._window.navigate_to(self.PAGE_VIDEO)
 
-    def _on_video_valid(self, path: str, info) -> None:
-        self._window.set_status(
-            f"Video loaded: {info.width}×{info.height}, "
-            f"{info.fps:.0f} fps, {info.duration_sec:.1f}s"
-        )
-        # Reload ranges from config in case the JSON was edited
-        self._update_analysis_ranges()
-        
-        # Pass facing side from video page to analysis view
-        side = self._window.video_view.facing_side
-        self._window.analysis_view.facing_side = side
-        self._window.navigate_to(self.PAGE_ANALYSIS)
-        # Start pose detection
-        self._pose_ctrl.start_analysis(path)
+    def _on_videos_ready(self, paths: dict) -> None:
+        """Handle the multi-video upload signal."""
+        self._video_paths["side"] = paths.get("side")
+        self._video_paths["front"] = paths.get("front")
+        self._video_paths["back"] = paths.get("back")
 
-    def _on_pose_complete(self, sequence: PoseSequence) -> None:
-        self._pose_sequence = sequence
+        facing = paths.get("facing", "left")
+
+        # Copy facing side to all analysis views
+        self._window.side_analysis_view.facing_side = facing
+        self._window.front_analysis_view.facing_side = facing
+        self._window.back_analysis_view.facing_side = facing
+
+        # Reload ranges from config
+        self._update_analysis_ranges()
+
+        # Build the analysis queue based on which videos were uploaded
+        self._analysis_queue = []
+        for vt in ("side", "front", "back"):
+            if self._video_paths[vt]:
+                self._analysis_queue.append(vt)
+
+        self._window.set_status(
+            f"Videos loaded: {', '.join(self._analysis_queue)} — starting analysis"
+        )
+
+        # Start with the first view in the queue
+        self._start_next_analysis()
+
+    def _start_next_analysis(self) -> None:
+        """Navigate to the next analysis page and start pose detection."""
+        if not self._analysis_queue:
+            # All views done — run final scoring
+            side = self._window.video_view.facing_side
+            if self._pose_sequences["side"]:
+                self._analysis_ctrl.analyze(
+                    self._pose_sequences["side"],
+                    self._rider,
+                    self._bike,
+                    side=side,
+                )
+            else:
+                self._window.navigate_to(self.PAGE_RESULTS)
+            return
+
+        current_view_type = self._analysis_queue.pop(0)
+        path = self._video_paths[current_view_type]
+
+        page_map = {
+            "side":  self.PAGE_SIDE_ANALYSIS,
+            "front": self.PAGE_FRONT_ANALYSIS,
+            "back":  self.PAGE_BACK_ANALYSIS,
+        }
+        self._window.navigate_to(page_map[current_view_type])
+        self._pose_ctrls[current_view_type].start_analysis(path)
+
+    def _on_pose_complete(self, view_type: str, sequence: PoseSequence) -> None:
+        self._pose_sequences[view_type] = sequence
         side = self._window.video_view.facing_side
         valid_count = len(sequence.get_valid_frames(side))
         self._window.set_status(
-            f"Pose detection complete — {valid_count} valid frames"
+            f"{view_type.title()} pose detection complete — {valid_count} valid frames"
         )
-        # Run analysis
-        self._analysis_ctrl.analyze(sequence, self._rider, self._bike, side=side)
+        # Move on to the next view in the queue (or finish)
+        self._start_next_analysis()
 
     def _on_analysis_complete(self, fit_score, recommendations) -> None:
         self._window.set_status(
@@ -110,7 +182,7 @@ class AppController:
 
         # Auto-save full session after analysis
         try:
-            video_path = getattr(self._window.video_view, "video_path", None)
+            video_path = self._video_paths.get("side")
             facing_side = getattr(self._window.video_view, "facing_side", "left")
             path = save_session(
                 rider=self._rider,
@@ -139,21 +211,27 @@ class AppController:
                 all_ranges = json.load(f)
             style = self._rider.riding_style.value
             ranges = all_ranges.get(style, all_ranges["road"])
-            self._window.analysis_view.set_ideal_ranges(ranges)
+            # Update all three analysis views
+            self._window.side_analysis_view.set_ideal_ranges(ranges)
+            self._window.front_analysis_view.set_ideal_ranges(ranges)
+            self._window.back_analysis_view.set_ideal_ranges(ranges)
         except Exception:
             pass
 
     def _new_session(self) -> None:
         self._rider = RiderMeasurements()
         self._bike = BikeGeometry()
-        self._pose_sequence = None
-        self._pose_ctrl.stop()
+        self._pose_sequences = {"side": None, "front": None, "back": None}
+        self._video_paths = {"side": None, "front": None, "back": None}
+        self._analysis_queue.clear()
+        for ctrl in self._pose_ctrls.values():
+            ctrl.stop()
         self._window.navigate_to(self.PAGE_RIDER)
         self._window.set_status("New session started")
 
     def _save(self) -> None:
         try:
-            video_path = getattr(self._window.video_view, "video_path", None)
+            video_path = self._video_paths.get("side")
             facing_side = getattr(self._window.video_view, "facing_side", "left")
             path = save_session(
                 rider=self._rider,
