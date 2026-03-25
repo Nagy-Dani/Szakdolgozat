@@ -11,8 +11,9 @@ DEFAULT_UNITS = "metric"  # "metric" | "imperial"
 VIDEO_MAX_DURATION_SEC = 120
 VIDEO_MIN_DURATION_SEC = 5
 
-# MediaPipe Pose settings
-POSE_MODEL_COMPLEXITY = 2        # 0 (lite), 1 (full), 2 (heavy)
+# RTMPose settings
+POSE_BACKEND = "onnxruntime"      # "onnxruntime" | "opencv"
+POSE_DEVICE = "cpu"               # "cpu" | "cuda"
 POSE_MIN_DETECTION_CONFIDENCE = 0.5
 POSE_MIN_TRACKING_CONFIDENCE = 0.5
 

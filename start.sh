@@ -45,11 +45,27 @@ fi
 PYQT_PATH=$(./myBikeFit/venv/bin/python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'plugins'))")
 export QT_PLUGIN_PATH="$PYQT_PATH"
 
-# 7. Run the application
-echo "Starting myBikeFit..."
+# 7. Pre-download RTMPose models (prevents UI freeze on first run)
+echo "Verifying RTMPose models (this may take a minute on first run to download ~400MB)..."
 cd "$PROJECT_DIR"
+./venv/bin/python -c "
+import sys
+try:
+    from rtmlib import BodyWithFeet
+    BodyWithFeet(mode='balanced', backend='onnxruntime')
+except ImportError:
+    pass
+"
+
+# 8. Run the application
+echo "Starting myBikeFit..."
 ./venv/bin/python main.py
 
 echo "Application closed."
+
+# 9. Clean up downloaded models
+echo "Cleaning up downloaded models to save disk space..."
+rm -rf ~/.cache/rtmlib
+
 # Deactivate when done
 deactivate
