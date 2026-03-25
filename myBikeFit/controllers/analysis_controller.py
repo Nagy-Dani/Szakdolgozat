@@ -38,6 +38,7 @@ class AnalysisController:
         rider: RiderMeasurements,
         bike: BikeGeometry | None = None,
         side: str = "left",
+        video_path: str = ""
     ) -> None:
         """Run the full analysis pipeline and push results to the view."""
 
@@ -59,6 +60,18 @@ class AnalysisController:
 
         # 2. Aggregate across pedal stroke
         self._angles = aggregate_angles(frame_angles)
+
+        # 2b. Generate CoM Overlay image
+        if video_path:
+            import os
+            from services.com_calculator import generate_com_overlay
+            output_dir = "sessions"
+            os.makedirs(output_dir, exist_ok=True)
+            output_path = os.path.join(output_dir, "com_overlay.jpg")
+            com_data = generate_com_overlay(sequence, video_path, side, output_path)
+            if com_data:
+                self._angles.com_bb_offset = com_data.get("offset_percent", 0.0)
+                self._angles.com_image_path = com_data.get("image_path", "")
 
         # 3. Generate fit score and recommendations
         self._fit_score, self._recommendations = evaluate_fit(

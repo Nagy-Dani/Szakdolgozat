@@ -24,6 +24,10 @@ class CyclingAngles:
     ankle_total_range: float = 0.0    # Max-min ankle angle (coordination indicator)
     shoulder_angle: float = 0.0       # Upper arm to torso
     elbow_angle: float = 0.0          # Elbow bend (ideal ≈ 150-165°)
+    
+    # Center of Mass Analysis
+    com_bb_offset: float = 0.0        # Positive if CoM is behind BB, negative if in front
+    com_image_path: str = ""          # Local file path to the generated CoM overlay graphic
 
     def to_dict(self) -> dict:
         return asdict(self)

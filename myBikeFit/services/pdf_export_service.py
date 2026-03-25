@@ -72,6 +72,9 @@ class PDFReportGenerator(FPDF):
         self._draw_angles(angles)
         self.ln(10)
         
+        self._draw_com(angles)
+        self.ln(5)
+        
         self._draw_recommendations(recommendations)
         
         self.output(filepath)
@@ -188,6 +191,32 @@ class PDFReportGenerator(FPDF):
                 self.cell(col_w * 0.3, 6, right_val, border=1, align="R", new_x="LMARGIN", new_y="NEXT")
             else:
                 self.ln(6)
+
+    def _draw_com(self, angles: CyclingAngles) -> None:
+        if not getattr(angles, "com_image_path", None):
+            return
+            
+        import os
+        if not os.path.exists(angles.com_image_path):
+            return
+            
+        self._header_section("Center of Mass Analysis")
+        
+        offset = getattr(angles, "com_bb_offset", 0.0)
+        direction = "behind" if offset >= 0 else "in front of"
+        abs_offset = abs(offset)
+        text = f"Estimated Center of Mass is {abs_offset:.1f}% {direction} the Bottom Bracket axis."
+        
+        self.set_font("helvetica", '', 11)
+        self.set_text_color(51, 65, 85)
+        self.cell(0, 8, text, new_x="LMARGIN", new_y="NEXT")
+        
+        try:
+            # Auto-center, max width 140mm
+            self.image(angles.com_image_path, x="C", w=140)
+            self.ln(6)
+        except Exception:
+            self.cell(0, 8, "(Image overlay rendering failed)", new_x="LMARGIN", new_y="NEXT")
 
     def _draw_recommendations(self, recommendations: list[Recommendation]) -> None:
         self._header_section("Actionable Recommendations")

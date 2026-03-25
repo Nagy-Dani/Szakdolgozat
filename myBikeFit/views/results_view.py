@@ -112,12 +112,53 @@ class ResultsView(QWidget):
         self._category_label.setText(scores.category.upper())
         self._category_label.setStyleSheet(f"color: {scores.category_color};")
 
+    def set_angles(self, angles) -> None:
+        from PyQt6.QtGui import QPixmap
+        self._com_angles = angles
+        # We will build the CoM card dynamically during set_recommendations so it sits in the scroll area.
+        
     def set_recommendations(self, recommendations: list[Recommendation]) -> None:
         # Clear existing cards
         while self._rec_layout.count():
             item = self._rec_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
+
+        # Insert Center of Mass graphic at the top if available
+        if getattr(self, "_com_angles", None) and self._com_angles.com_image_path:
+            import os
+            if os.path.exists(self._com_angles.com_image_path):
+                from PyQt6.QtGui import QPixmap
+                
+                com_card = QFrame()
+                com_card.setObjectName("recCard")
+                com_card.setStyleSheet("QFrame#recCard { border-left: 4px solid #a855f7; }") # Purple for CoM
+                
+                c_layout = QVBoxLayout(com_card)
+                c_layout.setContentsMargins(12, 12, 12, 12)
+                
+                title = QLabel("🎯  Center of Mass & Bottom Bracket Analysis")
+                title.setObjectName("recName")
+                c_layout.addWidget(title)
+                
+                offset = self._com_angles.com_bb_offset
+                direction = "behind" if offset >= 0 else "in front of"
+                abs_offset = abs(offset)
+                
+                desc = QLabel(f"Your Center of Mass is estimated to be {abs_offset:.1f}% {direction} the Bottom Bracket axis.")
+                desc.setStyleSheet("color: #475569; font-size: 13px; margin-bottom: 8px;")
+                desc.setWordWrap(True)
+                c_layout.addWidget(desc)
+                
+                img_lbl = QLabel()
+                pixmap = QPixmap(self._com_angles.com_image_path)
+                # Scale it down to fit reasonably in the scroll area width
+                pixmap = pixmap.scaled(600, 600, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                img_lbl.setPixmap(pixmap)
+                img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                c_layout.addWidget(img_lbl)
+                
+                self._rec_layout.addWidget(com_card)
 
         for rec in recommendations:
             card = self._create_card(rec)

@@ -100,7 +100,8 @@ class AppController:
             f"Pose detection complete — {valid_count} valid frames"
         )
         # Run analysis
-        self._analysis_ctrl.analyze(sequence, self._rider, self._bike, side=side)
+        v_path = getattr(self._window.video_view, "video_path", "")
+        self._analysis_ctrl.analyze(sequence, self._rider, self._bike, side=side, video_path=v_path)
 
     def _on_analysis_complete(self, fit_score, recommendations) -> None:
         self._window.set_status(
