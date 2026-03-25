@@ -427,14 +427,79 @@ def evaluate_fit(
     if has_measurements and 'geom_scores' in locals() and geom_scores:
         geometry_score = sum(geom_scores) / len(geom_scores)
         w_geom = ranges.get("geometry", {}).get("weight", 20)
+
+    # ──────────────────────────────────────────── Stability Checks (Front/Back)
+    
+    stability_scores: list[float] = []
+    w_stability = 0
+    
+    # 1. Knee Tracking (Left & Right)
+    for side in ("left", "right"):
+        tracking_val = getattr(angles, f"knee_tracking_{side}", 0)
+        # 0 means perfectly straight. Max is usually around 10.
+        r_track = ranges.get(f"knee_tracking_{side}", {"min": 0, "max": 10})
+        # Score knee tracking (lower deviation is better)
+        # If perfectly 0, score 100. If > max, penalize.
+        track_score = _score_single(tracking_val, r_track["min"], r_track["max"])
         
-    # Only use weights for the 5 components that are actually scored
+        # Only add to stability if we actually have non-zero angle (meaning front view was processed)
+        if hasattr(angles, f"knee_tracking_{side}") and tracking_val > 0.1 or r_track.get("weight", 0) > 0:
+            stability_scores.append(track_score)
+            
+            dev = max(0, tracking_val - r_track["max"])
+            sev = _severity_from_deviation(dev, r_track["max"])
+            
+            if tracking_val > r_track["max"]:
+                adj = f"{side.title()} knee deviates outward/inward too much — check cleat rotation or stance width (Q-factor)"
+                recommendations.append(Recommendation(
+                    component=f"knee_tracking_{side}",
+                    severity=sev,
+                    current_value=f"{tracking_val:.1f}°",
+                    ideal_range=f"<{r_track['max']}°",
+                    adjustment=adj,
+                    explanation=(
+                        f"The {side} knee should track mostly vertically over the pedal. "
+                        "Excessive lateral movement wastes power and risks joint pain."
+                    ),
+                ))
+
+    # 2. Hip Sway (Back view)
+    sway_val = getattr(angles, "hip_sway", 0)
+    r_sway = ranges.get("hip_sway", {"min": 0, "max": 8})
+    sway_score = _score_single(sway_val, r_sway["min"], r_sway["max"])
+    
+    if hasattr(angles, "hip_sway") and sway_val > 0.1 or r_sway.get("weight", 0) > 0:
+        stability_scores.append(sway_score)
+        
+        dev = max(0, sway_val - r_sway["max"])
+        sev = _severity_from_deviation(dev, r_sway["max"])
+        
+        if sway_val > r_sway["max"]:
+            adj = "Excessive hip rocking from side to side — saddle may be too high or core needs engagement"
+            recommendations.append(Recommendation(
+                component="hip_sway",
+                severity=sev,
+                current_value=f"{sway_val:.1f}°",
+                ideal_range=f"<{r_sway['max']}°",
+                adjustment=adj,
+                explanation=(
+                    "The hips should remain relatively stable and centered. "
+                    "Rocking side to side usually means you're reaching too far for the pedals."
+                ),
+            ))
+
+    stability_score = 0.0
+    if stability_scores:
+        stability_score = sum(stability_scores) / len(stability_scores)
+        w_stability = ranges.get("stability", {}).get("weight", 15)
+        
+    # Only use weights for the components that are actually scored
     w_knee = ranges.get("knee_extension", {}).get("weight", 30)
     w_hip = ranges.get("hip_angle", {}).get("weight", 20)
     w_back = ranges.get("back_angle", {}).get("weight", 15)
     w_ankle = ranges.get("ankle_angle", {}).get("weight", 10)
     w_elbow = ranges.get("elbow_angle", {}).get("weight", 5)
-    total_weight = w_knee + w_hip + w_back + w_ankle + w_elbow + w_geom
+    total_weight = w_knee + w_hip + w_back + w_ankle + w_elbow + w_geom + w_stability
 
     overall = (
         knee_score * w_knee
@@ -443,7 +508,8 @@ def evaluate_fit(
         + ankle_score * w_ankle
         + reach_score * w_elbow
         + geometry_score * w_geom
-    ) / total_weight
+        + stability_score * w_stability
+    ) / max(total_weight, 1)
 
     fit_score = FitScore(
         overall=round(overall, 1),
@@ -453,6 +519,7 @@ def evaluate_fit(
         ankle_score=round(ankle_score, 1),
         reach_score=round(reach_score, 1),
         geometry_score=round(geometry_score, 1),
+        stability_score=round(stability_score, 1),
     )
 
     # Sort recommendations by severity (critical first)

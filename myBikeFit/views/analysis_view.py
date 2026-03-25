@@ -26,14 +26,9 @@ _GAUGE_DEFS: dict[str, list[tuple[str, str, float, float]]] = {
     "front": [
         ("knee_tracking_left",   "Knee Tracking (L)",  0, 10),
         ("knee_tracking_right",  "Knee Tracking (R)",  0, 10),
-        ("shoulder_tilt",        "Shoulder Tilt",      0,  5),
-        ("hip_tilt",             "Hip Tilt",           0,  5),
     ],
     "back": [
-        ("pelvic_drop",          "Pelvic Drop",        0,  8),
-        ("knee_tracking_left",   "Knee Tracking (L)",  0, 10),
-        ("knee_tracking_right",  "Knee Tracking (R)",  0, 10),
-        ("torso_sway",           "Torso Sway",         0,  5),
+        ("hip_sway",             "Hip Sway",           0,  8),
     ],
 }
 

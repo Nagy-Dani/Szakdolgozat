@@ -24,6 +24,11 @@ class CyclingAngles:
     ankle_total_range: float = 0.0    # Max-min ankle angle (coordination indicator)
     shoulder_angle: float = 0.0       # Upper arm to torso
     elbow_angle: float = 0.0          # Elbow bend (ideal ≈ 150-165°)
+    
+    # Front / Back metrics
+    knee_tracking_left: float = 0.0   # Lateral deviation of left knee
+    knee_tracking_right: float = 0.0  # Lateral deviation of right knee
+    hip_sway: float = 0.0             # Lateral hip sway from center
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -46,6 +51,7 @@ class FitScore:
     ankle_score: float = 0.0
     reach_score: float = 0.0
     geometry_score: float = 0.0
+    stability_score: float = 0.0
 
     @property
     def category(self) -> str:

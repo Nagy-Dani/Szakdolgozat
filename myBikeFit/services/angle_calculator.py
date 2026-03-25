@@ -120,6 +120,108 @@ def compute_frame_angles(pose: PoseFrame, side: str = "left") -> dict[str, float
     }
 
 
+# ──────────────────────────────────────────── Helper: bilateral geometry
+
+
+def _midpoint(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    return ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+
+
+def _knee_tracking_angle(
+    hip: BodyLandmark, knee: BodyLandmark, ankle: BodyLandmark,
+) -> float:
+    """Lateral deviation of the knee from the hip-ankle vertical line (degrees).
+
+    In a front/back view the hip and ankle should form a roughly vertical line.
+    The knee may deviate inward (valgus) or outward (varus).
+    Returns the absolute deviation angle so 0° = perfect tracking.
+    """
+    # Vectors in 2-D image space (x = lateral, y = vertical)
+    hip_ankle = np.array([ankle.x - hip.x, ankle.y - hip.y])
+    hip_knee = np.array([knee.x - hip.x, knee.y - hip.y])
+    # Project hip_knee onto hip_ankle direction
+    ha_len = np.linalg.norm(hip_ankle) + 1e-8
+    proj_len = np.dot(hip_knee, hip_ankle) / ha_len
+    proj = (hip_ankle / ha_len) * proj_len
+    deviation = hip_knee - proj
+    dev_angle = float(np.degrees(np.arctan2(np.linalg.norm(deviation), abs(proj_len) + 1e-8)))
+    return abs(dev_angle)
+
+
+# ──────────────────────────────────────────── Front-view calculations
+
+# MediaPipe is less reliable from front/back views — use a lower threshold.
+_FRONT_BACK_VIS_THRESHOLD = 0.3
+
+
+def compute_front_angles(pose: PoseFrame) -> dict[str, float] | None:
+    """Compute front-view metrics — knee tracking only.
+
+    Requires both left and right hip, knee, ankle landmarks.
+    Returns None if required landmarks are missing.
+    """
+    get = pose.get
+    l_hip, r_hip = get("left_hip"), get("right_hip")
+    l_knee, r_knee = get("left_knee"), get("right_knee")
+    l_ankle, r_ankle = get("left_ankle"), get("right_ankle")
+
+    required = [l_hip, r_hip, l_knee, r_knee, l_ankle, r_ankle]
+    if not all(lm and lm.visibility > _FRONT_BACK_VIS_THRESHOLD for lm in required):
+        return None
+
+    return {
+        "knee_tracking_left": _knee_tracking_angle(l_hip, l_knee, l_ankle),
+        "knee_tracking_right": _knee_tracking_angle(r_hip, r_knee, r_ankle),
+    }
+
+
+# ──────────────────────────────────────────── Back-view calculations
+
+
+def compute_back_angles(pose: PoseFrame) -> dict[str, float] | None:
+    """Compute back-view metrics — hip lateral sway.
+
+    Measures how far the hip midpoint deviates laterally from the
+    shoulder midpoint (a proxy for the body's center line).
+    0° = perfectly centered, larger = more sway.
+
+    Only requires hips and shoulders — avoids lower-body landmarks
+    that MediaPipe struggles with from behind.
+    """
+    get = pose.get
+    l_hip, r_hip = get("left_hip"), get("right_hip")
+    l_shoulder, r_shoulder = get("left_shoulder"), get("right_shoulder")
+
+    required = [l_hip, r_hip, l_shoulder, r_shoulder]
+    if not all(lm and lm.visibility > _FRONT_BACK_VIS_THRESHOLD for lm in required):
+        return None
+
+    # Center references
+    shoulder_mid = _midpoint(_lm_xy(l_shoulder), _lm_xy(r_shoulder))
+    hip_mid = _midpoint(_lm_xy(l_hip), _lm_xy(r_hip))
+
+    # Lateral offset as an angle (degrees)
+    dx = abs(hip_mid[0] - shoulder_mid[0])
+    dy = abs(hip_mid[1] - shoulder_mid[1]) + 1e-8
+    hip_sway = float(np.degrees(np.arctan2(dx, dy)))
+
+    return {"hip_sway": hip_sway}
+
+
+# ──────────────────────────────────────────── Dispatcher
+
+
+def compute_angles_for_view(
+    pose: PoseFrame, view_type: str, side: str = "left",
+) -> dict[str, float] | None:
+    """Dispatch to the right angle-calculation function based on view type."""
+    if view_type == "front":
+        return compute_front_angles(pose)
+    if view_type == "back":
+        return compute_back_angles(pose)
+    return compute_frame_angles(pose, side=side)
+
+
 # ──────────────────────────────────────────── Aggregation over cycles
 
 
@@ -144,17 +246,21 @@ def _find_pedal_positions(knee_angles: list[float]) -> dict[str, int]:
     return {"tdc": tdc_idx, "bdc": bdc_idx, "three": three_idx}
 
 
-def aggregate_angles(frames_angles: list[dict[str, float]]) -> CyclingAngles:
+def aggregate_angles(
+    side_frames: list[dict[str, float]],
+    front_frames: list[dict[str, float]] | None = None,
+    back_frames: list[dict[str, float]] | None = None,
+) -> CyclingAngles:
     """Aggregate per-frame angle dicts into a single CyclingAngles summary.
 
     Uses min/max/mean across the pedal stroke for each angle,
     and extracts position-specific ankle/foot measurements.
     """
-    if not frames_angles:
+    if not side_frames:
         return CyclingAngles()
 
-    keys = frames_angles[0].keys()
-    arrays = {k: [f[k] for f in frames_angles] for k in keys}
+    keys = side_frames[0].keys()
+    arrays = {k: [f[k] for f in side_frames] for k in keys}
 
     # Detect pedal positions from knee angles
     positions = _find_pedal_positions(arrays["knee_extension"])
@@ -166,7 +272,7 @@ def aggregate_angles(frames_angles: list[dict[str, float]]) -> CyclingAngles:
     foot_ground_at_6 = arrays["foot_ground_angle"][positions["bdc"]]
     ankle_total_range = float(np.max(arrays["ankle_angle"]) - np.min(arrays["ankle_angle"]))
 
-    return CyclingAngles(
+    angles_summary = CyclingAngles(
         knee_extension_min=float(np.min(arrays["knee_extension"])),
         knee_extension_max=float(np.max(arrays["knee_extension"])),
         knee_flexion_max=180.0 - float(np.min(arrays["knee_extension"])),
@@ -183,3 +289,21 @@ def aggregate_angles(frames_angles: list[dict[str, float]]) -> CyclingAngles:
         shoulder_angle=float(np.mean(arrays["shoulder_angle"])),
         elbow_angle=float(np.mean(arrays["elbow_angle"])),
     )
+    
+    # ──────────────────────────────────────────── Front/Back Aggregation
+    
+    if front_frames:
+        f_keys = front_frames[0].keys()
+        f_arrays = {k: [f[k] for f in front_frames] for k in f_keys}
+        if "knee_tracking_left" in f_arrays:
+            angles_summary.knee_tracking_left = float(np.mean(f_arrays["knee_tracking_left"]))
+        if "knee_tracking_right" in f_arrays:
+            angles_summary.knee_tracking_right = float(np.mean(f_arrays["knee_tracking_right"]))
+            
+    if back_frames:
+        b_keys = back_frames[0].keys()
+        b_arrays = {k: [f[k] for f in back_frames] for k in b_keys}
+        if "hip_sway" in b_arrays:
+            angles_summary.hip_sway = float(np.mean(b_arrays["hip_sway"]))
+            
+    return angles_summary

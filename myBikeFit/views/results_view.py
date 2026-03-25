@@ -38,18 +38,31 @@ class ResultsView(QWidget):
         self._overall_gauge.setMinimumSize(160, 180)
         scores_row.addWidget(self._overall_gauge)
 
+        # Create a sub-layout for the smaller gauges to manage their visibility
+        gauge_layout = QVBoxLayout()
+        gauge_layout.setContentsMargins(0, 0, 0, 0)
+        gauge_layout.setSpacing(0)
+
         self._gauge_knee = AngleGauge("Knee", 0, 100)
         self._gauge_hip = AngleGauge("Hip", 0, 100)
         self._gauge_back = AngleGauge("Back", 0, 100)
         self._gauge_ankle = AngleGauge("Ankle", 0, 100)
         self._gauge_reach = AngleGauge("Reach", 0, 100)
         
-        self._gauge_sizing = AngleGauge("Sizing", 0, 100)
-        self._gauge_sizing.hide()  # hidden by default until score > 0
+        self._gauge_sizing = AngleGauge("Sizing\nScore", 0, 100)
+        self._gauge_stability = AngleGauge("Stability\nScore", 0, 100)
+        
+        # Add all gauges to the scores_row, but hide the optional ones initially
+        scores_row.addWidget(self._gauge_knee)
+        scores_row.addWidget(self._gauge_hip)
+        scores_row.addWidget(self._gauge_back)
+        scores_row.addWidget(self._gauge_ankle)
+        scores_row.addWidget(self._gauge_reach)
+        scores_row.addWidget(self._gauge_sizing)
+        scores_row.addWidget(self._gauge_stability)
 
-        for g in [self._gauge_knee, self._gauge_hip, self._gauge_back,
-                  self._gauge_ankle, self._gauge_reach, self._gauge_sizing]:
-            scores_row.addWidget(g)
+        self._gauge_sizing.hide()  # hidden by default until score > 0
+        self._gauge_stability.hide() # hidden by default until score > 0
 
         layout.addLayout(scores_row)
 
@@ -108,6 +121,13 @@ class ResultsView(QWidget):
             self._gauge_sizing.show()
         else:
             self._gauge_sizing.hide()
+            
+        # Only show stability gauge if front/back views were analyzed (score > 0)
+        if hasattr(scores, 'stability_score') and scores.stability_score > 0:
+            self._gauge_stability.set_value(scores.stability_score)
+            self._gauge_stability.show()
+        else:
+            self._gauge_stability.hide()
 
         self._category_label.setText(scores.category.upper())
         self._category_label.setStyleSheet(f"color: {scores.category_color};")

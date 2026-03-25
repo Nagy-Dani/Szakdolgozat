@@ -17,7 +17,7 @@ POSE_MIN_DETECTION_CONFIDENCE = 0.5
 POSE_MIN_TRACKING_CONFIDENCE = 0.5
 
 # Frame sampling — process every Nth frame for performance
-FRAME_SAMPLE_RATE = 1
+FRAME_SAMPLE_RATE = 3
 
 # Smoothing window for angle readings
 ANGLE_SMOOTHING_WINDOW = 5

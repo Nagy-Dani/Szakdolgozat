@@ -49,6 +49,24 @@
       "min": 5,
       "max": 20,
       "weight": 0
+    },
+    "knee_tracking_left": {
+      "min": 0,
+      "max": 10,
+      "weight": 0
+    },
+    "knee_tracking_right": {
+      "min": 0,
+      "max": 10,
+      "weight": 0
+    },
+    "hip_sway": {
+      "min": 0,
+      "max": 8,
+      "weight": 0
+    },
+    "stability": {
+      "weight": 15
     }
   },
   "mtb": {
@@ -81,6 +99,24 @@
       "min": 145,
       "max": 170,
       "weight": 5
+    },
+    "knee_tracking_left": {
+      "min": 0,
+      "max": 12,
+      "weight": 0
+    },
+    "knee_tracking_right": {
+      "min": 0,
+      "max": 12,
+      "weight": 0
+    },
+    "hip_sway": {
+      "min": 0,
+      "max": 10,
+      "weight": 0
+    },
+    "stability": {
+      "weight": 15
     }
   },
   "tt": {
@@ -113,6 +149,24 @@
       "min": 85,
       "max": 100,
       "weight": 5
+    },
+    "knee_tracking_left": {
+      "min": 0,
+      "max": 8,
+      "weight": 0
+    },
+    "knee_tracking_right": {
+      "min": 0,
+      "max": 8,
+      "weight": 0
+    },
+    "hip_sway": {
+      "min": 0,
+      "max": 6,
+      "weight": 0
+    },
+    "stability": {
+      "weight": 15
     }
   },
   "gravel": {
@@ -145,6 +199,24 @@
       "min": 148,
       "max": 168,
       "weight": 5
+    },
+    "knee_tracking_left": {
+      "min": 0,
+      "max": 11,
+      "weight": 0
+    },
+    "knee_tracking_right": {
+      "min": 0,
+      "max": 11,
+      "weight": 0
+    },
+    "hip_sway": {
+      "min": 0,
+      "max": 9,
+      "weight": 0
+    },
+    "stability": {
+      "weight": 15
     }
   },
   "commute": {
@@ -177,6 +249,24 @@
       "min": 150,
       "max": 175,
       "weight": 5
+    },
+    "knee_tracking_left": {
+      "min": 0,
+      "max": 12,
+      "weight": 0
+    },
+    "knee_tracking_right": {
+      "min": 0,
+      "max": 12,
+      "weight": 0
+    },
+    "hip_sway": {
+      "min": 0,
+      "max": 10,
+      "weight": 0
+    },
+    "stability": {
+      "weight": 15
     }
   }
 }

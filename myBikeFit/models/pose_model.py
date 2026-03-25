@@ -28,14 +28,34 @@ class PoseFrame:
         return self.landmarks.get(name)
 
     def is_complete(self, side: str = "left") -> bool:
-        """Check that the key cycling landmarks for the given side are visible."""
-        required = [
-            f"{side}_hip", f"{side}_knee", f"{side}_ankle",
-            f"{side}_shoulder", f"{side}_elbow", f"{side}_wrist",
-            f"{side}_heel", f"{side}_foot_index",
-        ]
+        """Check that the key cycling landmarks for the given side are visible.
+
+        For 'front' views, both left and right hip/knee/ankle must be visible.
+        For 'back' views, only hips and shoulders are needed (lower body
+        is unreliable from behind).
+        """
+        if side == "front":
+            required = [
+                "left_hip", "right_hip",
+                "left_knee", "right_knee",
+                "left_ankle", "right_ankle",
+            ]
+            threshold = 0.3
+        elif side == "back":
+            required = [
+                "left_hip", "right_hip",
+                "left_shoulder", "right_shoulder",
+            ]
+            threshold = 0.3
+        else:
+            required = [
+                f"{side}_hip", f"{side}_knee", f"{side}_ankle",
+                f"{side}_shoulder", f"{side}_elbow", f"{side}_wrist",
+                f"{side}_heel", f"{side}_foot_index",
+            ]
+            threshold = 0.5
         return all(
-            name in self.landmarks and self.landmarks[name].visibility > 0.5
+            name in self.landmarks and self.landmarks[name].visibility > threshold
             for name in required
         )
 

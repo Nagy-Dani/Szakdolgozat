@@ -142,9 +142,9 @@ class AppController:
         if not self._analysis_queue:
             # All views done — run final scoring
             side = self._window.video_view.facing_side
-            if self._pose_sequences["side"]:
+            if self._pose_sequences.get("side"):
                 self._analysis_ctrl.analyze(
-                    self._pose_sequences["side"],
+                    self._pose_sequences,
                     self._rider,
                     self._bike,
                     side=side,
@@ -166,8 +166,13 @@ class AppController:
 
     def _on_pose_complete(self, view_type: str, sequence: PoseSequence) -> None:
         self._pose_sequences[view_type] = sequence
-        side = self._window.video_view.facing_side
-        valid_count = len(sequence.get_valid_frames(side))
+        # For front/back views, use the view_type as the 'side' for validation;
+        # for side views, use the actual left/right facing side.
+        if view_type in ("front", "back"):
+            validation_side = view_type
+        else:
+            validation_side = self._window.video_view.facing_side
+        valid_count = len(sequence.get_valid_frames(validation_side))
         self._window.set_status(
             f"{view_type.title()} pose detection complete — {valid_count} valid frames"
         )

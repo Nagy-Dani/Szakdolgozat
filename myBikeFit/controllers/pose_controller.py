@@ -10,7 +10,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from models.pose_model import PoseFrame, PoseSequence
 from services.pose_service import PoseDetector
 from services.video_service import load_video
-from services.angle_calculator import compute_frame_angles
+from services.angle_calculator import compute_angles_for_view
 from config import FRAME_SAMPLE_RATE
 
 
@@ -118,7 +118,8 @@ class PoseController:
         # Cache the annotated frame and update the display
         self._view.player.set_overlay_for_frame(frame_num, annotated)
         side = self._view.facing_side
-        angles = compute_frame_angles(pose_frame, side=side)
+        view_type = getattr(self._view, 'view_type', 'side')
+        angles = compute_angles_for_view(pose_frame, view_type, side=side)
         if angles:
             # Cache angles so they can be looked up when scrubbing
             self._frame_angles[frame_num] = angles
