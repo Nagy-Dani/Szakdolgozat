@@ -195,8 +195,32 @@ class AppController:
             QMessageBox.critical(self._window, "Load Error", str(e))
 
     def _export_pdf(self) -> None:
-        # Placeholder — PDF export not yet implemented in MVP
-        QMessageBox.information(
-            self._window, "Export PDF",
-            "PDF export is planned for a future release."
+        """Export the current session analysis as a PDF report."""
+        if not getattr(self._analysis_ctrl, "fit_score", None):
+            QMessageBox.warning(self._window, "Export PDF", "No analysis results to export.")
+            return
+
+        date_str = __import__('datetime').datetime.now().strftime("%Y%m%d_%H%M")
+        default_name = f"myBikeFit_Report_{date_str}.pdf"
+
+        path, _ = QFileDialog.getSaveFileName(
+            self._window, "Export PDF Report", default_name, "PDF Files (*.pdf)"
         )
+        if not path:
+            return
+
+        try:
+            from services.pdf_export_service import PDFReportGenerator
+            generator = PDFReportGenerator()
+            generator.generate_report(
+                filepath=path,
+                rider=self._rider,
+                bike=self._bike,
+                scores=self._analysis_ctrl.fit_score,
+                angles=self._analysis_ctrl.angles,
+                recommendations=self._analysis_ctrl.recommendations
+            )
+            QMessageBox.information(self._window, "Export PDF", f"PDF report successfully saved to:\n{path}")
+            self._window.set_status(f"Exported PDF down to {path}")
+        except Exception as e:
+            QMessageBox.critical(self._window, "Export Error", f"Failed to generate PDF:\n{str(e)}")
