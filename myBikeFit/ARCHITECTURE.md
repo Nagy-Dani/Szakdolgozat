@@ -50,6 +50,7 @@
 | Video I/O | **OpenCV (cv2)** | Industry-standard video processing |
 | Pose Detection | **MediaPipe Pose** | Real-time body landmark detection |
 | Math | **NumPy** | Vector math for angle calculations |
+| PDF Export | **fpdf2** | PDF generation for analysis reports |
 | Persistence | **JSON (stdlib)** | Simple, human-readable session files |
 | Styling | **QSS (Qt Stylesheet)** | Catppuccin Mocha dark theme |
 | Testing | **pytest** | Unit testing for models and services |
@@ -110,7 +111,9 @@ myBikeFit/
 │   ├── pose_service.py                  ← MediaPipe wrapper
 │   ├── angle_calculator.py              ← Geometric angle math
 │   ├── fit_rules_engine.py              ← Rule-based scoring + recommendations
-│   └── persistence_service.py           ← JSON save/load
+│   ├── persistence_service.py           ← JSON save/load
+│   ├── pdf_export_service.py            ← PDF report generation (fpdf2)
+│   └── com_calculator.py               ← Center of Mass & Bottom Bracket estimation
 │
 └── tests/                               ← Unit tests
     ├── __init__.py
@@ -170,6 +173,8 @@ The application strictly separates concerns into three layers:
                                 │  • angle_calculator      │
                                 │  • fit_rules_engine      │
                                 │  • persistence_service   │
+                                │  • pdf_export_service    │
+                                │  • com_calculator        │
                                 └──────────────────────────┘
 ```
 
@@ -516,6 +521,8 @@ Required landmarks for `is_complete` (dynamic based on side): `[side]_hip`, `[si
 | `foot_ground_at_3` | 0–10° | Foot-to-ground angle at 3 o'clock |
 | `foot_ground_at_6` | 10–20° | Foot-to-ground angle at BDC |
 | `ankle_total_range` | — | Total ankle movement range |
+| `com_bb_offset` | — | CoM offset relative to the Bottom Bracket (positive = behind) |
+| `com_image_path` | — | Local file path to the generated CoM overlay graphic |
 
 **FitScore fields & properties:**
 
@@ -527,6 +534,7 @@ Required landmarks for `is_complete` (dynamic based on side): `[side]_hip`, `[si
 | `back_score` | float | 0–100 |
 | `ankle_score` | float | 0–100 |
 | `reach_score` | float | 0–100 |
+| `geometry_score` | float | 0–100 (from static bike sizing checks) |
 | `category` (property) | str | "excellent" (≥90), "good" (≥75), "fair" (≥55), "poor" (<55) |
 | `category_color` (property) | str | Hex color for the category |
 
@@ -639,9 +647,11 @@ Split layout:
 
 ### 9.6 `views/results_view.py` — `ResultsView(QWidget)`
 
-- 6 `AngleGauge` widgets repurposed as 0–100 score gauges (overall + 5 areas)
+- 7 `AngleGauge` widgets repurposed as 0–100 score gauges (overall + 5 areas + sizing)
+- Sizing gauge shown conditionally when `geometry_score > 0`
 - Category label ("EXCELLENT", "GOOD", "FAIR", "POOR") with color
 - Scrollable list of `Recommendation` cards (colored severity border, icon, adjustment text, explanation)
+- **Center of Mass card** — dynamically injected at the top of the scroll area when a CoM overlay image is available; displays the annotated video frame and a textual description of the CoM-to-BB offset
 - "Export PDF" and "Start Over" buttons
 
 **Signals:** `export_requested()`, `restart_requested()`
@@ -650,8 +660,9 @@ Split layout:
 
 | Method | Description |
 |---|---|
-| `set_scores(FitScore)` | Populates all score gauges + category label |
-| `set_recommendations(list[Recommendation])` | Clears and rebuilds recommendation cards |
+| `set_scores(FitScore)` | Populates all score gauges + category label; conditionally shows sizing gauge |
+| `set_angles(CyclingAngles)` | Stores angles data (including `com_image_path`) for use by `set_recommendations` |
+| `set_recommendations(list[Recommendation])` | Clears and rebuilds recommendation cards; inserts CoM overlay card at top if available |
 
 ---
 
@@ -723,7 +734,7 @@ Creates all sub-controllers, wires all callbacks and menu signals.
 | `_new_session()` | Menu or "Start Over" | Reset all models, navigate → RIDER |
 | `_save()` | Menu Ctrl+S | Call `persistence_service.save_session()` |
 | `_load()` | Menu Ctrl+O | File dialog → `persistence_service.load_session()` → populate views |
-| `_export_pdf()` | Menu or button | Placeholder (future) |
+| `_export_pdf()` | Menu or button | Validates analysis exists → opens `QFileDialog` → calls `PDFReportGenerator.generate_report()` → saves PDF |
 | `_update_analysis_ranges()` | On rider change | Load `angle_ranges.json` for riding style → update gauge ranges |
 
 ---
@@ -805,15 +816,21 @@ Connects `view.video_ready` → `_on_video_ready`.
 __init__(results_view: ResultsView)
 ```
 
-**`analyze(sequence, rider, bike)` algorithm:**
+**`analyze(sequence, rider, bike, side, video_path)` algorithm:**
 
 ```
 1. For each valid PoseFrame in sequence:
-   └── compute_frame_angles(pose_frame) → dict of 6 angle values
+   └── compute_frame_angles(pose_frame, side) → dict of 6 angle values
        (knee_extension, hip_angle, back_angle, ankle_angle, elbow_angle, shoulder_angle)
 
 2. aggregate_angles(all_frame_dicts) → CyclingAngles
    └── Min/max/mean per angle across all frames
+
+2b. generate_com_overlay(sequence, video_path, side, output_path) → dict
+    └── Calculates Bottom Bracket position from ankle stroke extremums
+    └── Calculates 2D Center of Mass using Zatsiorsky segmental model
+    └── Draws pink BB ellipse + green CoM plumb line on the 3 o'clock frame
+    └── Stores com_bb_offset and com_image_path in CyclingAngles
 
 3. evaluate_fit(cycling_angles, riding_style) → (FitScore, list[Recommendation])
    └── Compares each angle against ideal ranges from angle_ranges.json
@@ -822,6 +839,7 @@ __init__(results_view: ResultsView)
 
 4. Push to ResultsView:
    └── results_view.set_scores(fit_score)
+   └── results_view.set_angles(cycling_angles)    ← NEW (for CoM card)
    └── results_view.set_recommendations(recommendations)
 
 5. Call _on_complete_callback(fit_score, recommendations)
@@ -930,11 +948,51 @@ evaluate_fit(angles: CyclingAngles, riding_style: str) → (FitScore, list[Recom
 **Overall score formula:**
 $$\text{overall} = \frac{\sum_{area} (\text{area\_score} \times \text{weight}_{area})}{\sum \text{weights}}$$
 
-Weights from `angle_ranges.json` (default road): knee=30, hip=20, back=15, ankle=10, elbow=5. Total=80.
+Weights from `angle_ranges.json` (default road): knee=30, hip=20, back=15, ankle=10, elbow=5, stability=15. Total=95.
+
+Additionally, if bike geometry data is supplied, a `geometry_score` is computed via static sizing checks and factored into the overall score.
 
 ---
 
-### 11.5 `services/persistence_service.py`
+### 11.5 `services/pdf_export_service.py` — `PDFReportGenerator`
+
+Generates a professional PDF document from the fit session data using `fpdf2`.
+
+| Method | Description |
+|---|---|
+| `generate_report(filepath, rider, bike, scores, angles, recommendations)` | Orchestrates the full PDF construction and saves to disk |
+| `_draw_header(rider)` | Title, date, and 2-column rider details |
+| `_draw_scores(FitScore)` | Overall score banner (color-coded) + 3-per-row component score blocks |
+| `_draw_angles(CyclingAngles)` | 2-column table of measured angle values |
+| `_draw_com(CyclingAngles)` | Center of Mass section: text description + embedded overlay image |
+| `_draw_recommendations(list[Recommendation])` | Severity-colored left-border cards with adjustment and explanation text |
+| `_clean_text(str)` | Unicode sanitizer — replaces em-dashes, degree symbols, math symbols, and emoji with ASCII equivalents (required by the Helvetica/WinAnsi font) |
+
+> **Note:** `cell()` and `multi_cell()` are overridden to automatically route all text through `_clean_text` before rendering.
+
+---
+
+### 11.6 `services/com_calculator.py` — Center of Mass & Bottom Bracket Estimation
+
+Calculates the rider's 2D Center of Mass (CoM) relative to the bike's Bottom Bracket (BB) from a side-view `PoseSequence`.
+
+**`generate_com_overlay(sequence, video_path, side, output_path) → dict`**
+
+**Algorithm:**
+
+1. **Bottom Bracket (BB):** Iterate over all valid frames, collect the `ankle` keypoint `(x, y)` values. The BB is the center of the bounding box: `bb = ((min_x+max_x)/2, (min_y+max_y)/2)`. An ellipse is drawn using the half-axes.
+2. **3 o'clock frame selection:** Find the frame where the foot is furthest forward (max `x` for left-facing, min `x` for right-facing).
+3. **Center of Mass (CoM):** On the selected power-phase frame, compute a weighted average of body segment midpoints using simplified Zatsiorsky proportions:
+   - Head & Trunk (shoulder↔hip midpoint): **55%**
+   - Thighs (hip↔knee midpoint): **28%**
+   - Shanks (knee↔ankle midpoint): **9%**
+   - Arms (shoulder↔wrist midpoint): **8%**
+4. **Overlay drawing:** Opens the original video frame via OpenCV, draws the pink BB ellipse + crosshair, green CoM line + dot, and directional text label.
+5. **Returns:** `{"com_x", "bb_x", "offset_percent", "image_path"}`
+
+---
+
+### 11.7 `services/persistence_service.py`
 
 | Function | Description |
 |---|---|
@@ -1230,7 +1288,10 @@ pytest tests/ -v
 
 | Feature | Status | Notes |
 |---|---|---|
-| PDF report export | Placeholder | Use `fpdf2` or `reportlab` |
+| PDF report export | **Done** | Uses `fpdf2` via `PDFReportGenerator` in `pdf_export_service.py` |
+| Center of Mass & BB analysis | **Done** | Zatsiorsky segmental model + ankle bounding-box BB estimation in `com_calculator.py` |
+| Geometry score | **Done** | Static bike sizing checks integrated into overall `FitScore` |
+| Stability score (front/back views) | **Done** | Hip sway + knee tracking from front/back video views |
 | Webcam live recording | Not implemented | Add tab in VideoCaptureView |
 | Imperial unit toggle | Not implemented | MeasurementInput.set_unit() + conversion math |
 | Pedal stroke cycle detection | **Done** | Finds local minima/maxima of knee angle to identify TDC/BDC/3 o'clock |
