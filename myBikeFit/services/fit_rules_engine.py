@@ -41,17 +41,12 @@ def _score_single(value: float, ideal_min: float, ideal_max: float) -> float:
     penalty = (deviation / max(range_width, 1)) * 40
     return max(0.0, 100.0 - penalty)
 
-
-# ──────────────────────────────────────────── Main API
-
-
 def evaluate_fit(
     angles: CyclingAngles,
     rider: RiderMeasurements,
     bike: BikeGeometry,
 ) -> tuple[FitScore, list[Recommendation]]:
     """Evaluate cycling angles and geometric measurements against ideal ranges.
-
     Returns (FitScore, list[Recommendation]).
     """
     all_ranges = _load_ranges()
@@ -60,9 +55,8 @@ def evaluate_fit(
 
     recommendations: list[Recommendation] = []
 
-    # --- Knee Extension (at BDC) ---
     r = ranges["knee_extension"]
-    knee_val = angles.knee_extension_max  # BDC = minimum knee flexion = maximum extension
+    knee_val = angles.knee_extension_max
     knee_score = _score_single(knee_val, r["min"], r["max"])
     dev = 0 if r["min"] <= knee_val <= r["max"] else (
         r["min"] - knee_val if knee_val < r["min"] else knee_val - r["max"]
@@ -70,10 +64,10 @@ def evaluate_fit(
     sev = _severity_from_deviation(dev, r["max"] - r["min"])
     adj = ""
     if knee_val < r["min"]:
-        mm = round(dev * 2.5, 0)  # rough mm per degree
+        mm = round(dev * 1.5, 0)
         adj = f"Raise saddle by approximately {mm:.0f} mm"
     elif knee_val > r["max"]:
-        mm = round(dev * 2.5, 0)
+        mm = round(dev * 1.5, 0)
         adj = f"Lower saddle by approximately {mm:.0f} mm"
     else:
         adj = "Saddle height is well set"
@@ -89,18 +83,17 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Hip Angle ---
     r = ranges["hip_angle"]
-    hip_val = angles.hip_angle_min  # At TDC, most closed
+    hip_val = angles.hip_angle_min
     hip_score = _score_single(hip_val, r["min"], r["max"])
     dev = 0 if r["min"] <= hip_val <= r["max"] else (
         r["min"] - hip_val if hip_val < r["min"] else hip_val - r["max"]
     )
     sev = _severity_from_deviation(dev, r["max"] - r["min"])
     if hip_val < r["min"]:
-        adj = f"Move saddle back or raise handlebars to open hip angle"
+        adj = f"Move saddle forward or raise handlebars to open hip angle"
     elif hip_val > r["max"]:
-        adj = f"Move saddle forward or lower handlebars to close hip angle"
+        adj = f"Move saddle backward or lower handlebars to close hip angle"
     else:
         adj = "Hip angle is in a good range"
     recommendations.append(Recommendation(
@@ -115,7 +108,6 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Back Angle ---
     r = ranges["back_angle"]
     back_val = angles.back_angle
     back_score = _score_single(back_val, r["min"], r["max"])
@@ -141,7 +133,6 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Ankle Angle at 3 o'clock (Power Phase) ---
     r_ank = ranges.get("ankle_angle_at_3", {"min": 100, "max": 120})
     ankle_at_3 = angles.ankle_angle_at_3
     ankle_score = _score_single(ankle_at_3, r_ank["min"], r_ank["max"])
@@ -162,12 +153,11 @@ def evaluate_fit(
         ideal_range=f"{r_ank['min']}–{r_ank['max']}°",
         adjustment=adj,
         explanation=(
-            "At 3 o'clock (power phase), the ankle should be slightly pointed down (100-120° in MediaPipe tracking). "
+            "At 3 o'clock (power phase), the ankle should be slightly pointed down. "
             "This is the most powerful foot posture for the down-stroke."
         ),
     ))
 
-    # --- Foot-to-Ground at 12 o'clock (TDC) ---
     r_ft12 = ranges.get("foot_ground_at_12", {"min": 15, "max": 35})
     ft12 = angles.foot_ground_at_12
     dev = 0 if r_ft12["min"] <= ft12 <= r_ft12["max"] else (
@@ -190,12 +180,11 @@ def evaluate_fit(
         ideal_range=f"{r_ft12['min']}–{r_ft12['max']}°",
         adjustment=adj,
         explanation=(
-            "At 12 o'clock, a moderate toe-down posture (15-35°) eases the foot "
+            "At 12 o'clock, a moderate toe-down posture (15-35) eases the foot "
             "through the top of the stroke. Too flat may indicate joint restrictions."
         ),
     ))
 
-    # --- Foot-to-Ground at 3 o'clock ---
     r_ft3 = ranges.get("foot_ground_at_3", {"min": 0, "max": 12})
     ft3 = angles.foot_ground_at_3
     dev = 0 if r_ft3["min"] <= ft3 <= r_ft3["max"] else (
@@ -220,7 +209,6 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Foot-to-Ground at 6 o'clock (BDC) ---
     r_ft6 = ranges.get("foot_ground_at_6", {"min": 5, "max": 20})
     ft6 = angles.foot_ground_at_6
     dev = 0 if r_ft6["min"] <= ft6 <= r_ft6["max"] else (
@@ -245,7 +233,6 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Ankle Coordination ---
     coord_range = angles.ankle_total_range
     if coord_range < 10:
         sev = Severity.MINOR
@@ -268,7 +255,6 @@ def evaluate_fit(
         ),
     ))
 
-    # --- Elbow Angle ---
     r = ranges["elbow_angle"]
     elbow_val = angles.elbow_angle
     reach_score = _score_single(elbow_val, r["min"], r["max"])
@@ -293,10 +279,7 @@ def evaluate_fit(
             "and prevents locking out, which causes numbness and fatigue."
         ),
     ))
-
-    # ──────────────────────────────────────────── Geometric Sizing Checks
-    # Only run these if the user actually input non-zero measurements
-
+    
     has_measurements = (
         rider and bike and
         rider.inseam_cm > 0 and
@@ -306,7 +289,6 @@ def evaluate_fit(
     if has_measurements:
         geom_scores: list[float] = []
 
-        # 1. Saddle Height vs Inseam (LeMond)
         ideal_saddle = rider.inseam_cm * 0.883
         actual_saddle = bike.saddle_height_cm
         diff = abs(actual_saddle - ideal_saddle)
@@ -336,7 +318,6 @@ def evaluate_fit(
             ),
         ))
 
-        # 2. Frame Size vs Inseam
         if bike.frame_size_cm > 0:
             mult = 0.574 if riding_style == "mtb" else 0.66
             ideal_frame = rider.inseam_cm * mult
@@ -365,7 +346,6 @@ def evaluate_fit(
                 explanation="Frame size dictates standover height and overall bike proportion relative to your legs.",
             ))
 
-        # 3. Crank Length vs Inseam
         if bike.crank_length_mm > 0:
             ideal_crank = (rider.inseam_cm * 1.25) + 65.0
             actual_crank = bike.crank_length_mm
@@ -393,9 +373,8 @@ def evaluate_fit(
                 explanation="Proper crank length prevents excessive knee flexion at the top of the pedal stroke.",
             ))
 
-        # 4. Overall Reach vs Frame Size
         if bike.handlebar_reach_cm > 0 and bike.frame_size_cm > 0:
-            ideal_reach = (365.0 + (0.85 * bike.frame_size_cm)) / 10.0  # Convert mm formula to cm
+            ideal_reach = (365.0 + (0.85 * bike.frame_size_cm)) / 10.0
             actual_reach = bike.handlebar_reach_cm
             r_diff = abs(actual_reach - ideal_reach)
             geom_scores.append(_score_single(actual_reach, ideal_reach - 2.0, ideal_reach + 2.0))
@@ -420,7 +399,7 @@ def evaluate_fit(
                 adjustment=adj,
                 explanation="Ideal reach balances your extension based on the frame size to prevent back/neck strain.",
             ))
-    # --- Overall score (weighted) ---
+
     geometry_score = 0.0
     w_geom = 0
 
@@ -428,7 +407,6 @@ def evaluate_fit(
         geometry_score = sum(geom_scores) / len(geom_scores)
         w_geom = ranges.get("geometry", {}).get("weight", 20)
         
-    # Only use weights for the 5 components that are actually scored
     w_knee = ranges.get("knee_extension", {}).get("weight", 30)
     w_hip = ranges.get("hip_angle", {}).get("weight", 20)
     w_back = ranges.get("back_angle", {}).get("weight", 15)
@@ -455,7 +433,6 @@ def evaluate_fit(
         geometry_score=round(geometry_score, 1),
     )
 
-    # Sort recommendations by severity (critical first)
     severity_order = {Severity.CRITICAL: 0, Severity.MODERATE: 1, Severity.MINOR: 2, Severity.OPTIMAL: 3}
     recommendations.sort(key=lambda r: severity_order.get(r.severity, 99))
 

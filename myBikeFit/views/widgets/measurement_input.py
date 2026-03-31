@@ -8,13 +8,7 @@ from PyQt6.QtCore import pyqtSignal
 
 
 class MeasurementInput(QWidget):
-    """A labeled numeric field with unit suffix.
-
-    Example usage::
-
-        inp = MeasurementInput("Height", "cm", min_val=100, max_val=250)
-        inp.value_changed.connect(lambda v: print(v))
-    """
+    """A labeled numeric field with unit suffix."""
 
     value_changed = pyqtSignal(float)
 
@@ -46,8 +40,6 @@ class MeasurementInput(QWidget):
         layout.addWidget(self._spin)
 
         layout.addStretch()
-
-    # --- public API ---
 
     @property
     def value(self) -> float:

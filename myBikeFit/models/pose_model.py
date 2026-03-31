@@ -10,10 +10,10 @@ class BodyLandmark:
     """Single body landmark detected by MediaPipe."""
 
     name: str
-    x: float  # Normalized 0–1 (left of image → right)
-    y: float  # Normalized 0–1 (top of image → bottom)
-    z: float  # Depth estimate
-    visibility: float  # Confidence 0–1
+    x: float
+    y: float
+    z: float
+    visibility: float
 
 
 @dataclass

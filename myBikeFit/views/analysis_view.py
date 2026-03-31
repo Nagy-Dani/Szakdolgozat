@@ -26,7 +26,6 @@ class AnalysisView(QWidget):
         header.setObjectName("pageHeader")
         layout.addWidget(header)
 
-        # --- Progress ---
         self._progress_label = QLabel("Waiting for video…")
         self._progress_label.setObjectName("pageSubtitle")
         layout.addWidget(self._progress_label)
@@ -34,24 +33,21 @@ class AnalysisView(QWidget):
         self._progress = QProgressBar()
         self._progress.setRange(0, 100)
         self._progress.setValue(0)
-        self._progress.setFixedHeight(8)
+        self._progress.setFixedHeight(9)
         layout.addWidget(self._progress)
 
-        # --- Main content: video + gauges ---
         content = QHBoxLayout()
 
-        # Video
         self._player = VideoPlayer()
         content.addWidget(self._player, stretch=3)
 
-        # Angle gauges sidebar
         gauges_group = QGroupBox("Live Angles")
         gauges_layout = QVBoxLayout(gauges_group)
 
-        self._gauge_knee_ext = AngleGauge("Knee Extension", 140, 150)
-        self._gauge_hip = AngleGauge("Hip Angle", 40, 55)
-        self._gauge_back = AngleGauge("Back Angle", 35, 45)
-        self._gauge_ankle = AngleGauge("Ankle Angle", 90, 120)
+        self._gauge_knee_ext = AngleGauge("Knee Extension", 65, 148)
+        self._gauge_hip = AngleGauge("Hip Angle", 44, 110)
+        self._gauge_back = AngleGauge("Back Angle", 28, 45)
+        self._gauge_ankle = AngleGauge("Ankle Angle", 95, 135)
         self._gauge_elbow = AngleGauge("Elbow Angle", 150, 165)
 
         for g in [self._gauge_knee_ext, self._gauge_hip, self._gauge_back,
@@ -62,8 +58,6 @@ class AnalysisView(QWidget):
         content.addWidget(gauges_group, stretch=1)
 
         layout.addLayout(content, stretch=1)
-
-    # ------------------------------------------------------------------ API
 
     @property
     def facing_side(self) -> str:

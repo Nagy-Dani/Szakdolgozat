@@ -35,7 +35,6 @@ class BikeInputView(QWidget):
         subtitle.setWordWrap(True)
         layout.addWidget(subtitle)
 
-        # --- Measurements ---
         group = QGroupBox("Frame & Fit")
         glayout = QVBoxLayout(group)
 
@@ -55,7 +54,6 @@ class BikeInputView(QWidget):
 
         layout.addWidget(group)
 
-        # --- Buttons ---
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 

@@ -21,7 +21,6 @@ from services.persistence_service import save_session, load_session
 class AppController:
     """Creates all sub-controllers, connects the navigation flow."""
 
-    # Page indices
     PAGE_RIDER = 0
     PAGE_BIKE = 1
     PAGE_VIDEO = 2
@@ -31,26 +30,22 @@ class AppController:
     def __init__(self, window: MainWindow):
         self._window = window
 
-        # Models
         self._rider = RiderMeasurements()
         self._bike = BikeGeometry()
         self._pose_sequence: PoseSequence | None = None
 
-        # Sub-controllers
         self._rider_ctrl = RiderController(window.rider_view, self._rider)
         self._bike_ctrl = BikeController(window.bike_view, self._bike)
         self._video_ctrl = VideoController(window.video_view)
         self._pose_ctrl = PoseController(window.analysis_view)
         self._analysis_ctrl = AnalysisController(window.results_view)
 
-        # Wire navigation
         self._rider_ctrl.set_on_valid(self._on_rider_valid)
         self._bike_ctrl.set_on_valid(self._on_bike_valid)
         self._video_ctrl.set_on_valid(self._on_video_valid)
         self._pose_ctrl.set_on_complete(self._on_pose_complete)
         self._analysis_ctrl.set_on_complete(self._on_analysis_complete)
 
-        # Menu actions
         window.new_session_requested.connect(self._new_session)
         window.save_session_requested.connect(self._save)
         window.load_session_requested.connect(self._load)
@@ -58,10 +53,7 @@ class AppController:
         window.results_view.restart_requested.connect(self._new_session)
         window.results_view.export_requested.connect(self._export_pdf)
 
-        # Load angle ranges for analysis view based on riding style
         self._update_analysis_ranges()
-
-    # ------------------------------------------------------------------ Flow
 
     def _on_rider_valid(self, rider: RiderMeasurements) -> None:
         self._rider = rider
@@ -82,14 +74,11 @@ class AppController:
             f"Video loaded: {info.width}×{info.height}, "
             f"{info.fps:.0f} fps, {info.duration_sec:.1f}s"
         )
-        # Reload ranges from config in case the JSON was edited
         self._update_analysis_ranges()
         
-        # Pass facing side from video page to analysis view
         side = self._window.video_view.facing_side
         self._window.analysis_view.facing_side = side
         self._window.navigate_to(self.PAGE_ANALYSIS)
-        # Start pose detection
         self._pose_ctrl.start_analysis(path)
 
     def _on_pose_complete(self, sequence: PoseSequence) -> None:
@@ -99,7 +88,6 @@ class AppController:
         self._window.set_status(
             f"Pose detection complete — {valid_count} valid frames"
         )
-        # Run analysis
         v_path = getattr(self._window.video_view, "video_path", "")
         self._analysis_ctrl.analyze(sequence, self._rider, self._bike, side=side, video_path=v_path)
 
@@ -109,7 +97,6 @@ class AppController:
         )
         self._window.navigate_to(self.PAGE_RESULTS)
 
-        # Auto-save full session after analysis
         try:
             video_path = getattr(self._window.video_view, "video_path", None)
             facing_side = getattr(self._window.video_view, "facing_side", "left")
@@ -127,9 +114,7 @@ class AppController:
                 f"({fit_score.category}) — saved to {path}"
             )
         except Exception:
-            pass  # Don't block the UI on save failure
-
-    # ------------------------------------------------------------------ Actions
+            pass
 
     def _update_analysis_ranges(self) -> None:
         """Load ideal angle ranges for the current riding style."""
@@ -182,7 +167,7 @@ class AppController:
             self._rider_ctrl.load(self._rider)
             self._bike_ctrl.load(self._bike)
 
-            # Restore results if the session contains analysis data
+            
             if "fit_score" in data and "recommendations" in data:
                 self._update_analysis_ranges()
                 self._window.results_view.set_scores(data["fit_score"])

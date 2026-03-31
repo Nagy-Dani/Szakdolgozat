@@ -17,9 +17,9 @@ from config import FRAME_SAMPLE_RATE
 class PoseWorker(QObject):
     """Worker that runs pose detection on a video in a background thread."""
 
-    progress = pyqtSignal(int, str)            # percent, message
-    frame_processed = pyqtSignal(int, object, object)  # frame_num, PoseFrame, annotated_frame
-    finished = pyqtSignal(object)              # PoseSequence
+    progress = pyqtSignal(int, str)
+    frame_processed = pyqtSignal(int, object, object)
+    finished = pyqtSignal(object)
     error = pyqtSignal(str)
 
     def __init__(self, video_path: str, sample_rate: int = FRAME_SAMPLE_RATE):
@@ -83,11 +83,8 @@ class PoseController:
     def start_analysis(self, video_path: str) -> None:
         """Begin pose detection in a background thread."""
         self.stop()
-
-        # Clear cached angles from any previous analysis
         self._frame_angles.clear()
 
-        # Open the video in the analysis view's player so controls work
         self._view.player.load_video(video_path)
         self._view.player.frame_changed.connect(self._on_frame_changed)
 
@@ -115,12 +112,10 @@ class PoseController:
         self._view.set_progress(pct, msg)
 
     def _on_frame(self, frame_num: int, pose_frame: PoseFrame, annotated) -> None:
-        # Cache the annotated frame and update the display
         self._view.player.set_overlay_for_frame(frame_num, annotated)
         side = self._view.facing_side
         angles = compute_frame_angles(pose_frame, side=side)
         if angles:
-            # Cache angles so they can be looked up when scrubbing
             self._frame_angles[frame_num] = angles
             self._view.update_gauges(
                 knee_ext=angles["knee_extension"],
@@ -131,10 +126,10 @@ class PoseController:
             )
 
     def _on_frame_changed(self, frame_num: int, raw_frame: np.ndarray) -> None:
-        """Update gauges when the user scrubs to a different frame."""
+        """Update gauges when the user scrubs to a different frame.
+        Finds the nearest cached frame"""
         if not self._frame_angles:
             return
-        # Find the nearest cached frame (not every frame is sampled)
         nearest = min(self._frame_angles, key=lambda k: abs(k - frame_num))
         angles = self._frame_angles[nearest]
         self._view.update_gauges(

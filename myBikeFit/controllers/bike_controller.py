@@ -19,7 +19,6 @@ class BikeController:
 
     def _on_data_submitted(self, data: dict) -> None:
         if not data:
-            # User skipped — keep defaults
             if self._on_valid_callback:
                 self._on_valid_callback(self._model)
             return

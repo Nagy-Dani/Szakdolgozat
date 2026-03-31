@@ -36,8 +36,6 @@ class RiderMeasurements:
     riding_style: RidingStyle = RidingStyle.ROAD
     name: Optional[str] = None
 
-    # ---------- validation ----------
-
     _RANGES: dict = field(default_factory=lambda: {
         "height_cm": (100.0, 250.0),
         "weight_kg": (30.0, 200.0),
@@ -63,14 +61,10 @@ class RiderMeasurements:
     def is_valid(self) -> bool:
         return len(self.validate()) == 0
 
-    # ---------- derived helpers ----------
-
     @property
     def estimated_saddle_height(self) -> float:
         """Quick LeMond formula: saddle height ≈ inseam × 0.883."""
         return round(self.inseam_cm * 0.883, 1)
-
-    # ---------- serialization ----------
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -81,7 +75,7 @@ class RiderMeasurements:
 
     @classmethod
     def from_dict(cls, data: dict) -> RiderMeasurements:
-        data = dict(data)  # copy
+        data = dict(data)
         data.pop("_RANGES", None)
         data["flexibility"] = Flexibility(data.get("flexibility", "medium"))
         data["riding_style"] = RidingStyle(data.get("riding_style", "road"))

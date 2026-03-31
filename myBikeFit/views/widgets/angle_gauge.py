@@ -27,9 +27,7 @@ class AngleGauge(QWidget):
         self._ideal_min = ideal_min
         self._ideal_max = ideal_max
         self._value = value
-        self.setMinimumSize(120, 140)
-
-    # --- public API ---
+        self.setMinimumSize(100, 120)
 
     def set_value(self, value: float) -> None:
         self._value = value
@@ -43,20 +41,20 @@ class AngleGauge(QWidget):
     @property
     def severity_color(self) -> QColor:
         if self._ideal_min <= self._value <= self._ideal_max:
-            return QColor("#22c55e")  # green
+            return QColor("#22c55e")
         margin = (self._ideal_max - self._ideal_min) * 0.5
         if (self._ideal_min - margin) <= self._value <= (self._ideal_max + margin):
-            return QColor("#eab308")  # yellow
-        return QColor("#ef4444")      # red
+            return QColor("#eab308")
+        return QColor("#ef4444")
 
-    # --- painting ---
+    def paintEvent(self, event):
+        """Paint the gauge."""
 
-    def paintEvent(self, event):  # noqa: N802
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         w = self.width()
-        h = self.height() - 24  # leave room for label
+        h = self.height() - 24
         size = min(w, h)
         margin = 10
         rect = QRectF(
@@ -66,12 +64,10 @@ class AngleGauge(QWidget):
             size - 2 * margin,
         )
 
-        # Background arc (gray)
         pen = QPen(QColor("#333333"), 10, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
         painter.setPen(pen)
         painter.drawArc(rect, 210 * 16, -240 * 16)
 
-        # Value arc
         color = self.severity_color
         pen.setColor(color)
         painter.setPen(pen)
@@ -79,20 +75,17 @@ class AngleGauge(QWidget):
         span = int(-240 * frac * 16)
         painter.drawArc(rect, 210 * 16, span)
 
-        # Value text
         painter.setPen(QColor("white"))
-        font = QFont("Segoe UI", 14, QFont.Weight.Bold)
+        font = QFont("Arial", 14, QFont.Weight.Bold)
         painter.setFont(font)
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self._value:.0f}°")
 
-        # Label
-        font = QFont("Segoe UI", 9)
+        font = QFont("Arial", 9)
         painter.setFont(font)
         label_rect = QRectF(0, h + 4, w, 20)
         painter.drawText(label_rect, Qt.AlignmentFlag.AlignHCenter, self._label)
 
-        # Range text (smaller, gray) on left and right ends of the arc
-        range_font = QFont("Segoe UI", 9, QFont.Weight.Bold)
+        range_font = QFont("Arial", 9, QFont.Weight.Bold)
         painter.setFont(range_font)
         painter.setPen(QColor("#a6adc8"))
         
@@ -100,7 +93,7 @@ class AngleGauge(QWidget):
         min_rect = QRectF(rect.left() - 15, y_pos, 40, 20)
         max_rect = QRectF(rect.right() - 25, y_pos, 40, 20)
         
-        painter.drawText(min_rect, Qt.AlignmentFlag.AlignCenter, f"{self._ideal_min:.0f}°")
-        painter.drawText(max_rect, Qt.AlignmentFlag.AlignCenter, f"{self._ideal_max:.0f}°")
+        painter.drawText(min_rect, Qt.AlignmentFlag.AlignCenter, f"{self._ideal_min:.0f}")
+        painter.drawText(max_rect, Qt.AlignmentFlag.AlignCenter, f"{self._ideal_max:.0f}")
 
         painter.end()

@@ -20,10 +20,6 @@ def generate_com_overlay(
     if not valid_frames:
         return {}
 
-    # 1. Calculate Bottom Bracket (BB)
-    # The ankle moves in a roughly circular path around the BB.
-    # (Do NOT use foot_index, as the toe tip is 10-15cm in front of the pedal spindle,
-    # which pushes the estimated BB forward).
     ankle_xs, ankle_ys = [], []
     for f in valid_frames:
         ank = f.landmarks.get(f"{side}_ankle")
@@ -39,9 +35,6 @@ def generate_com_overlay(
     bb_r_x = (max(ankle_xs) - min(ankle_xs)) / 2.0
     bb_r_y = (max(ankle_ys) - min(ankle_ys)) / 2.0
 
-    # 2. Find 3 o'clock frame (crank horizontal, pedal furthest forward)
-    # side="left" -> rider faces right -> furthest forward is max(x)
-    # side="right" -> rider faces left -> furthest forward is min(x)
     power_frame = None
     if side == "left":
         power_frame = max(
@@ -54,9 +47,6 @@ def generate_com_overlay(
             key=lambda f: f.landmarks[f"{side}_foot_index"].x if f"{side}_foot_index" in f.landmarks else 1
         )
 
-    # 3. Calculate Center of Mass (CoM) on the power frame
-    # Weights for Sagittal plane CoM (simplified 2D Zatsiorsky model):
-    # Head & Trunk: 55%, Thighs: 28%, Shanks: 9%, Arms: 8%
     lm = power_frame.landmarks
     def get_pt(name):
         pt = lm.get(f"{side}_{name}")
@@ -69,7 +59,7 @@ def generate_com_overlay(
     wrist = get_pt("wrist")
     
     if not all([shoulder, hip, knee, ankle]):
-        return {} # Can't calculate CoM safely
+        return {}
         
     def mid(p1, p2): return ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2)
 
@@ -82,7 +72,6 @@ def generate_com_overlay(
     com_x = trunk_com[0]*w_trunk + thigh_com[0]*w_thigh + shank_com[0]*w_shank + arm_com[0]*w_arm
     com_y = trunk_com[1]*w_trunk + thigh_com[1]*w_thigh + shank_com[1]*w_shank + arm_com[1]*w_arm
 
-    # 4. Open video, seek to frame, draw overlay
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_POS_FRAMES, power_frame.frame_number)
     ret, frame = cap.read()
@@ -96,18 +85,14 @@ def generate_com_overlay(
     bb_px = (int(bb_x * w), int(bb_y * h))
     com_px = (int(com_x * w), int(com_y * h))
     
-    # Draw Pink Ellipse for Pedal Stroke Range
     cv2.ellipse(frame, bb_px, (int(bb_r_x*w), int(bb_r_y*h)), 0, 0, 360, (255, 0, 255), 3)
     
-    # Draw Pink Vertical line and crosshair for BB
     cv2.drawMarker(frame, bb_px, (255, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
     cv2.line(frame, (bb_px[0], bb_px[1]-max(300, int(0.4*h))), (bb_px[0], bb_px[1]+50), (255, 0, 255), 2)
     
-    # Draw Green Vertical line and point for CoM
     cv2.circle(frame, com_px, 10, (0, 255, 0), -1)
     cv2.line(frame, (com_px[0], 0), (com_px[0], h), (0, 255, 0), 2)
     
-    # Draw text distance
     dist_px = com_px[0] - bb_px[0]
     direction = "BEHIND" if ((dist_px < 0 and side == "left") or (dist_px > 0 and side == "right")) else "IN FRONT"
     
@@ -121,7 +106,6 @@ def generate_com_overlay(
 
     cv2.imwrite(output_path, frame)
     
-    # Positive offset = CoM is behind the BB relative to the rider facing direction
     offset_percent = (bb_x - com_x) if side == "left" else (com_x - bb_x)
     
     return {

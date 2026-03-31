@@ -19,20 +19,19 @@ def load_stylesheet() -> str:
 
 
 def main() -> None:
+    """Main entry point of the application."""
+    
     app = QApplication(sys.argv)
     app.setApplicationName("myBikeFit")
     app.setOrganizationName("myBikeFit")
 
-    # Global font
-    font = QFont("Segoe UI", 11)
+    font = QFont("Arial", 11)
     app.setFont(font)
 
-    # Dark theme stylesheet
     stylesheet = load_stylesheet()
     if stylesheet:
         app.setStyleSheet(stylesheet)
 
-    # Create window and controller
     window = MainWindow()
     controller = AppController(window)
 

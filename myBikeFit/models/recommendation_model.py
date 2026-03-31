@@ -35,12 +35,12 @@ class Severity(Enum):
 class Recommendation:
     """A single bike-fit adjustment recommendation."""
 
-    component: str          # e.g. "saddle_height", "saddle_setback", "stem"
+    component: str
     severity: Severity
-    current_value: str      # Human-readable current measurement / angle
-    ideal_range: str        # Human-readable ideal range
-    adjustment: str         # e.g. "Raise saddle by 8-12 mm"
-    explanation: str        # Why this matters for comfort / performance / injury
+    current_value: str
+    ideal_range: str
+    adjustment: str
+    explanation: str
 
     @property
     def display_name(self) -> str:

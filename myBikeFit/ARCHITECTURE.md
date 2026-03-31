@@ -190,7 +190,7 @@ The application strictly separates concerns into three layers:
 main.py
   │
   ├── QApplication created
-  ├── Global font set ("Segoe UI", 11)
+  ├── Global font set ("Arial", 11)
   ├── app.qss stylesheet loaded and applied
   │
   ├── MainWindow() created

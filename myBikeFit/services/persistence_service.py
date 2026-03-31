@@ -23,7 +23,6 @@ def save_session(
     path: str | None = None,
 ) -> str:
     """Save the current session to a JSON file.
-
     Returns the path of the saved file.
     """
     if path is None:
@@ -60,7 +59,6 @@ def save_session(
 
 def load_session(path: str) -> dict:
     """Load a session from a JSON file.
-
     Returns a dict with keys: 'rider', 'bike', and optionally
     'fit_score', 'cycling_angles', 'recommendations', 'facing_side', 'video_path'.
     """

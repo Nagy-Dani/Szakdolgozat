@@ -42,7 +42,6 @@ class AnalysisController:
     ) -> None:
         """Run the full analysis pipeline and push results to the view."""
 
-        # 1. Compute per-frame angles
         frame_angles: list[dict[str, float]] = []
         for pose_frame in sequence.get_valid_frames(side):
             angles = compute_frame_angles(pose_frame, side=side)
@@ -58,10 +57,8 @@ class AnalysisController:
             )
             return
 
-        # 2. Aggregate across pedal stroke
         self._angles = aggregate_angles(frame_angles)
 
-        # 2b. Generate CoM Overlay image
         if video_path:
             import os
             from services.com_calculator import generate_com_overlay
@@ -73,14 +70,12 @@ class AnalysisController:
                 self._angles.com_bb_offset = com_data.get("offset_percent", 0.0)
                 self._angles.com_image_path = com_data.get("image_path", "")
 
-        # 3. Generate fit score and recommendations
         self._fit_score, self._recommendations = evaluate_fit(
             self._angles,
             rider=rider,
             bike=bike,
         )
 
-        # 4. Push to results view
         self._view.set_scores(self._fit_score)
         self._view.set_recommendations(self._recommendations)
 

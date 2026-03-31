@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from services.video_service import get_video_info, load_video, VideoInfo
+from services.video_service import get_video_info, VideoInfo
 from config import VIDEO_MIN_DURATION_SEC, VIDEO_MAX_DURATION_SEC
 
 
@@ -25,7 +25,6 @@ class VideoController:
             QMessageBox.critical(self._view, "Error", f"Cannot read video: {path}")
             return
 
-        # Duration check
         if info.duration_sec < VIDEO_MIN_DURATION_SEC:
             from PyQt6.QtWidgets import QMessageBox
             QMessageBox.warning(

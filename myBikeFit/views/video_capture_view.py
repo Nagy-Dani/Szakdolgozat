@@ -13,9 +13,9 @@ from views.widgets.video_player import VideoPlayer
 
 
 class VideoCaptureView(QWidget):
-    """Upload a side-view video or record from webcam (MVP: upload only)."""
+    """Upload a side-view video or record from webcam"""
 
-    video_ready = pyqtSignal(str)  # Emits the file path of the loaded video
+    video_ready = pyqtSignal(str)
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -40,7 +40,6 @@ class VideoCaptureView(QWidget):
         subtitle.setObjectName("pageSubtitle")
         layout.addWidget(subtitle)
 
-        # Tips
         tips = QLabel(
             "<b>Tips for best results:</b><br>"
             "• Place the camera at hip height, perpendicular to the bike<br>"
@@ -52,7 +51,6 @@ class VideoCaptureView(QWidget):
         tips.setWordWrap(True)
         layout.addWidget(tips)
 
-        # --- Facing side toggle ---
         facing_row = QHBoxLayout()
         facing_label = QLabel("Cyclist facing:")
         facing_label.setObjectName("pageSubtitle")
@@ -75,11 +73,9 @@ class VideoCaptureView(QWidget):
         facing_row.addStretch()
         layout.addLayout(facing_row)
 
-        # --- Video player ---
         self._player = VideoPlayer()
         layout.addWidget(self._player, stretch=1)
 
-        # --- Buttons ---
         btn_row = QHBoxLayout()
 
         self._btn_upload = QPushButton("Upload Video")
@@ -99,8 +95,6 @@ class VideoCaptureView(QWidget):
 
         layout.addLayout(btn_row)
 
-    # ------------------------------------------------------------------ API
-
     def _set_facing(self, side: str) -> None:
         self._facing = side
         self._update_facing_buttons()
@@ -109,7 +103,6 @@ class VideoCaptureView(QWidget):
         self._btn_left.setChecked(self._facing == "left")
         self._btn_right.setChecked(self._facing == "right")
         
-        # Color indicator for active side
         active_style = "background-color: #7aa2f7; color: #1e1e2e;"
         self._btn_left.setStyleSheet(active_style if self._facing == "left" else "")
         self._btn_right.setStyleSheet(active_style if self._facing == "right" else "")
@@ -126,8 +119,6 @@ class VideoCaptureView(QWidget):
     @property
     def player(self) -> VideoPlayer:
         return self._player
-
-    # ------------------------------------------------------------------ Slots
 
     def _on_upload(self) -> None:
         path, _ = QFileDialog.getOpenFileName(

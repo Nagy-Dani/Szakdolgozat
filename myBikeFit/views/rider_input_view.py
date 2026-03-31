@@ -24,7 +24,6 @@ class RiderInputView(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(32, 24, 32, 24)
 
-        # Header
         header = QLabel("Rider Measurements")
         header.setObjectName("pageHeader")
         layout.addWidget(header)
@@ -33,7 +32,6 @@ class RiderInputView(QWidget):
         subtitle.setObjectName("pageSubtitle")
         layout.addWidget(subtitle)
 
-        # --- Name ---
         name_row = QHBoxLayout()
         name_row.addWidget(QLabel("Name (optional):"))
         self._name_input = QLineEdit()
@@ -43,17 +41,16 @@ class RiderInputView(QWidget):
         name_row.addStretch()
         layout.addLayout(name_row)
 
-        # --- Body measurements group ---
         body_group = QGroupBox("Body Measurements")
         body_layout = QVBoxLayout(body_group)
 
-        self._height = MeasurementInput("Height", "cm", 100, 250, default=175)
-        self._weight = MeasurementInput("Weight", "kg", 30, 200, default=75)
-        self._inseam = MeasurementInput("Inseam (inner leg)", "cm", 50, 120, default=82)
-        self._foot_size = MeasurementInput("Foot Size", "EU", 30, 55, decimals=0, default=43)
+        self._height = MeasurementInput("Height", "cm", 100, 250, default=180)
+        self._weight = MeasurementInput("Weight", "kg", 30, 200, default=65)
+        self._inseam = MeasurementInput("Inseam (inner leg)", "cm", 50, 120, default=83)
+        self._foot_size = MeasurementInput("Foot Size", "EU", 30, 55, decimals=0, default=41)
         self._arm_length = MeasurementInput("Arm Length", "cm", 40, 90, default=60)
-        self._torso_length = MeasurementInput("Torso Length", "cm", 30, 80, default=50)
-        self._shoulder_width = MeasurementInput("Shoulder Width", "cm", 25, 60, default=42)
+        self._torso_length = MeasurementInput("Torso Length", "cm", 30, 80, default=52)
+        self._shoulder_width = MeasurementInput("Shoulder Width", "cm", 25, 60, default=38)
 
         for w in [self._height, self._weight, self._inseam, self._foot_size,
                   self._arm_length, self._torso_length, self._shoulder_width]:
@@ -61,23 +58,21 @@ class RiderInputView(QWidget):
 
         layout.addWidget(body_group)
 
-        # --- Profile group ---
         profile_group = QGroupBox("Riding Profile")
         profile_layout = QFormLayout(profile_group)
 
         self._flexibility = QComboBox()
         self._flexibility.addItems([f.value.title() for f in Flexibility])
-        self._flexibility.setCurrentIndex(1)  # Medium
+        self._flexibility.setCurrentIndex(1)
         profile_layout.addRow("Flexibility:", self._flexibility)
 
         self._riding_style = QComboBox()
         self._riding_style.addItems([s.value.title() for s in RidingStyle])
-        self._riding_style.setCurrentIndex(0)  # Road
+        self._riding_style.setCurrentIndex(0)
         profile_layout.addRow("Riding Style:", self._riding_style)
 
         layout.addWidget(profile_group)
 
-        # --- Next button ---
         btn_row = QHBoxLayout()
         btn_row.addStretch()
         self._btn_next = QPushButton("Next  →")
@@ -88,8 +83,6 @@ class RiderInputView(QWidget):
         layout.addLayout(btn_row)
 
         layout.addStretch()
-
-    # ------------------------------------------------------------------ API
 
     def get_data(self) -> dict:
         return {
@@ -109,18 +102,17 @@ class RiderInputView(QWidget):
         """Populate form from a data dict (e.g. loaded session)."""
         if data.get("name"):
             self._name_input.setText(data["name"])
-        self._height.value = data.get("height_cm", 175)
-        self._weight.value = data.get("weight_kg", 75)
-        self._inseam.value = data.get("inseam_cm", 82)
-        self._foot_size.value = data.get("foot_size_eu", 43)
+        self._height.value = data.get("height_cm", 180)
+        self._weight.value = data.get("weight_kg", 65)
+        self._inseam.value = data.get("inseam_cm", 83)
+        self._foot_size.value = data.get("foot_size_eu", 41)
         self._arm_length.value = data.get("arm_length_cm", 60)
-        self._torso_length.value = data.get("torso_length_cm", 50)
-        self._shoulder_width.value = data.get("shoulder_width_cm", 42)
+        self._torso_length.value = data.get("torso_length_cm", 52)
+        self._shoulder_width.value = data.get("shoulder_width_cm", 38)
 
     def show_errors(self, errors: list[str]) -> None:
         QMessageBox.warning(self, "Validation Errors", "\n".join(errors))
 
-    # ------------------------------------------------------------------ Slots
-
     def _on_submit(self) -> None:
+        """Handle Next button click — emit signal with rider data."""
         self.rider_data_submitted.emit(self.get_data())

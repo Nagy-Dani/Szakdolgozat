@@ -9,32 +9,30 @@ from dataclasses import dataclass, asdict
 class CyclingAngles:
     """Key angles measured during the pedal stroke."""
 
-    knee_extension_min: float = 0.0   # At bottom dead centre (ideal ≈ 140-150°)
-    knee_extension_max: float = 0.0   # At top dead centre
-    knee_flexion_max: float = 0.0     # Maximum knee bend at TDC (ideal ≈ 65-75°)
-    hip_angle_min: float = 0.0        # Torso–thigh angle at TDC (ideal ≈ 40-55° road)
-    hip_angle_max: float = 0.0        # Torso–thigh angle at BDC
-    back_angle: float = 0.0           # Torso relative to horizontal (ideal ≈ 35-45° road)
-    ankle_angle_min: float = 0.0      # Minimum ankle through stroke
-    ankle_angle_max: float = 0.0      # Maximum ankle through stroke
-    ankle_angle_at_3: float = 0.0     # Ankle at 3 o'clock (power phase, ideal 85-95°)
-    foot_ground_at_12: float = 0.0    # Foot-to-ground at TDC (ideal 15-35°)
-    foot_ground_at_3: float = 0.0     # Foot-to-ground at 3 o'clock (ideal 0-12°)
-    foot_ground_at_6: float = 0.0     # Foot-to-ground at BDC (ideal 5-20°)
-    ankle_total_range: float = 0.0    # Max-min ankle angle (coordination indicator)
-    shoulder_angle: float = 0.0       # Upper arm to torso
-    elbow_angle: float = 0.0          # Elbow bend (ideal ≈ 150-165°)
+    knee_extension_min: float = 0.0   
+    knee_extension_max: float = 0.0   
+    knee_flexion_max: float = 0.0     
+    hip_angle_min: float = 0.0        
+    hip_angle_max: float = 0.0        
+    back_angle: float = 0.0           
+    ankle_angle_min: float = 0.0      
+    ankle_angle_max: float = 0.0      
+    ankle_angle_at_3: float = 0.0     
+    foot_ground_at_12: float = 0.0    
+    foot_ground_at_3: float = 0.0     
+    foot_ground_at_6: float = 0.0     
+    ankle_total_range: float = 0.0    
+    shoulder_angle: float = 0.0       
+    elbow_angle: float = 0.0          
     
-    # Center of Mass Analysis
-    com_bb_offset: float = 0.0        # Positive if CoM is behind BB, negative if in front
-    com_image_path: str = ""          # Local file path to the generated CoM overlay graphic
+    com_bb_offset: float = 0.0        
+    com_image_path: str = ""          
 
     def to_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, data: dict) -> CyclingAngles:
-        # Filter to only known fields to handle schema evolution
         known = {f.name for f in cls.__dataclass_fields__.values()}
         return cls(**{k: v for k, v in data.items() if k in known})
 
@@ -78,6 +76,6 @@ class FitScore:
     @classmethod
     def from_dict(cls, data: dict) -> FitScore:
         data = dict(data)
-        data.pop("category", None)  # computed property, not a constructor arg
+        data.pop("category", None)
         known = {f.name for f in cls.__dataclass_fields__.values()}
         return cls(**{k: v for k, v in data.items() if k in known})

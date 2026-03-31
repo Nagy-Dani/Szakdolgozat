@@ -4,21 +4,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict
 
-
 @dataclass
 class BikeGeometry:
     """Core bike geometry measurements for fit analysis."""
 
-    frame_size_cm: float = 0.0        # Seat tube length (center-to-top)
-    saddle_height_cm: float = 0.0     # Center of BB to top of saddle
-    saddle_setback_cm: float = 0.0    # Horizontal offset behind BB center
-    handlebar_reach_cm: float = 0.0   # Saddle nose to handlebar center
-    handlebar_drop_cm: float = 0.0    # Vertical drop saddle → handlebar (+ = drop)
-    crank_length_mm: float = 172.5    # Crank arm length
-    stem_length_mm: float = 100.0     # Stem length
-    stem_angle_deg: float = -6.0      # Stem angle (negative = drop)
-
-    # ---------- validation ----------
+    frame_size_cm: float = 0.0        
+    saddle_height_cm: float = 0.0     
+    saddle_setback_cm: float = 0.0    
+    handlebar_reach_cm: float = 0.0   
+    handlebar_drop_cm: float = 0.0    
+    crank_length_mm: float = 172.5    
+    stem_length_mm: float = 100.0     
+    stem_angle_deg: float = -6.0     
 
     _RANGES = {
         "frame_size_cm": (40.0, 70.0),

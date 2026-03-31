@@ -20,7 +20,6 @@ from views.results_view import ResultsView
 class MainWindow(QMainWindow):
     """Top-level window with sidebar navigation and stacked content pages."""
 
-    # Navigation signals
     page_changed = pyqtSignal(int)
     new_session_requested = pyqtSignal()
     save_session_requested = pyqtSignal()
@@ -34,7 +33,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
         self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
 
-        # --- Create child views ---
         self.rider_view = RiderInputView()
         self.bike_view = BikeInputView()
         self.video_view = VideoCaptureView()
@@ -44,8 +42,6 @@ class MainWindow(QMainWindow):
         self._setup_menu()
         self._setup_ui()
         self._setup_statusbar()
-
-    # ------------------------------------------------------------------ UI
 
     def _setup_menu(self) -> None:
         menu = self.menuBar()
@@ -70,6 +66,7 @@ class MainWindow(QMainWindow):
         file_menu.addSeparator()
 
         act_export = QAction("&Export PDF…", self)
+        act_export.setShortcut("Ctrl+P")
         act_export.triggered.connect(self.export_pdf_requested.emit)
         file_menu.addAction(act_export)
 
@@ -85,7 +82,6 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # --- Sidebar ---
         sidebar = QWidget()
         sidebar.setFixedWidth(SIDEBAR_WIDTH)
         sidebar.setObjectName("sidebar")
@@ -107,7 +103,6 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(sidebar)
 
-        # --- Content stack ---
         self._stack = QStackedWidget()
         self._stack.addWidget(self.rider_view)
         self._stack.addWidget(self.bike_view)
@@ -116,7 +111,6 @@ class MainWindow(QMainWindow):
         self._stack.addWidget(self.results_view)
         main_layout.addWidget(self._stack, stretch=1)
 
-        # Default selection
         self._nav_list.setCurrentRow(0)
 
     def _setup_statusbar(self) -> None:
@@ -124,14 +118,11 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status)
         self._status.showMessage("Ready")
 
-    # ------------------------------------------------------------------ Slots
-
     def _on_page_selected(self, index: int) -> None:
         self._stack.setCurrentIndex(index)
         self.page_changed.emit(index)
 
     def navigate_to(self, index: int) -> None:
-        """Programmatically switch to a page."""
         self._nav_list.setCurrentRow(index)
 
     def set_status(self, message: str) -> None:
@@ -146,6 +137,6 @@ class MainWindow(QMainWindow):
             f"<p>Version {APP_VERSION}</p>"
             f"<p>AI-powered bike fitting assistant.</p>"
             f"<p>Upload a side-view video of yourself pedaling, enter your "
-            f"body measurements, and get actionable recommendations to "
+            f"body and bike measurements, and get actionable recommendations to "
             f"optimize your bike fit.</p>",
         )

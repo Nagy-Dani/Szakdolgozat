@@ -41,7 +41,6 @@ class RiderController:
             self._view.show_errors(errors)
             return
 
-        # Valid — notify the app controller to move to the next page
         if self._on_valid_callback:
             self._on_valid_callback(self._model)
 

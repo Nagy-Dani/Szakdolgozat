@@ -73,4 +73,5 @@ def save_frame(frame: np.ndarray, path: str) -> None:
 
 
 def _fourcc_to_str(fourcc: int) -> str:
+    """Convert a FourCC integer to a 4-character string."""
     return "".join(chr((fourcc >> (8 * i)) & 0xFF) for i in range(4))

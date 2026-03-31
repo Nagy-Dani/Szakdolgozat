@@ -13,7 +13,7 @@ from PyQt6.QtGui import QImage, QPixmap
 class VideoPlayer(QWidget):
     """Widget that displays video frames with play/pause and scrubbing."""
 
-    frame_changed = pyqtSignal(int, np.ndarray)  # frame_number, frame_data
+    frame_changed = pyqtSignal(int, np.ndarray)
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -33,14 +33,12 @@ class VideoPlayer(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Video display
         self._display = QLabel()
         self._display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._display.setMinimumSize(640, 480)
         self._display.setObjectName("videoDisplay")
         layout.addWidget(self._display)
 
-        # Controls
         controls = QHBoxLayout()
         self._btn_play = QPushButton("▶")
         self._btn_play.setFixedWidth(40)
@@ -66,8 +64,6 @@ class VideoPlayer(QWidget):
         controls.addWidget(self._lbl_time)
 
         layout.addLayout(controls)
-
-    # --- Public API ---
 
     def load_video(self, path: str) -> bool:
         self.stop()
@@ -131,8 +127,6 @@ class VideoPlayer(QWidget):
     def prev_frame(self) -> None:
         self._show_frame(max(0, self._current_frame - 1))
 
-    # --- Internal ---
-
     def _next_frame(self) -> None:
         if self._current_frame >= self._total_frames - 1:
             self.pause()
@@ -140,6 +134,7 @@ class VideoPlayer(QWidget):
         self._show_frame(self._current_frame + 1)
 
     def _show_frame(self, frame_number: int) -> None:
+        """Show a specific frame number."""
         if self._cap is None:
             return
         frame_number = max(0, min(frame_number, self._total_frames - 1))
@@ -153,12 +148,12 @@ class VideoPlayer(QWidget):
         self._slider.blockSignals(False)
         self._lbl_time.setText(f"{frame_number} / {self._total_frames}")
 
-        # Use cached overlay if available, otherwise show raw frame
         display = self._overlays.get(frame_number, frame)
         self._render(display)
         self.frame_changed.emit(frame_number, frame)
 
     def _render(self, frame: np.ndarray) -> None:
+        """Render a frame to the display."""
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb.shape
         img = QImage(rgb.data, w, h, ch * w, QImage.Format.Format_RGB888)
@@ -169,6 +164,6 @@ class VideoPlayer(QWidget):
         )
         self._display.setPixmap(pixmap)
 
-    def closeEvent(self, event):  # noqa: N802
+    def closeEvent(self, event):
         self.stop()
         super().closeEvent(event)
