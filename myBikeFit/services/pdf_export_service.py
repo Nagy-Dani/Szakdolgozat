@@ -228,7 +228,6 @@ class PDFReportGenerator(FPDF):
             self.cell(2, 18, "")
             
             startX = self.get_x()
-            startY = self.get_y()
             
             self.set_font("helvetica", 'B', 11)
             self.set_text_color(51, 65, 85)
@@ -239,7 +238,7 @@ class PDFReportGenerator(FPDF):
             self.set_text_color(15, 23, 42)
             self.multi_cell(0, 5, rec.adjustment, new_x="LMARGIN", new_y="NEXT")
             
-            self.set_y(startX)
+            self.set_x(startX)
             self.set_font("helvetica", 'I', 9)
             self.set_text_color(100, 116, 139)
             self.multi_cell(0, 5, rec.explanation, new_x="LMARGIN", new_y="NEXT")
