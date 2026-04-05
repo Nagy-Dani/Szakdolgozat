@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
 
 from config import APP_NAME, APP_VERSION, WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT, SIDEBAR_WIDTH
+from views.welcome_view import WelcomeView
 from views.rider_input_view import RiderInputView
 from views.bike_input_view import BikeInputView
 from views.video_capture_view import VideoCaptureView
@@ -26,13 +27,14 @@ class MainWindow(QMainWindow):
     load_session_requested = pyqtSignal()
     export_pdf_requested = pyqtSignal()
 
-    PAGES = ["Rider", "Bike", "Video", "Analysis", "Results"]
+    PAGES = ["Welcome", "Rider", "Bike", "Video", "Analysis", "Results"]
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
         self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
 
+        self.welcome_view = WelcomeView()
         self.rider_view = RiderInputView()
         self.bike_view = BikeInputView()
         self.video_view = VideoCaptureView()
@@ -104,6 +106,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(sidebar)
 
         self._stack = QStackedWidget()
+        self._stack.addWidget(self.welcome_view)
         self._stack.addWidget(self.rider_view)
         self._stack.addWidget(self.bike_view)
         self._stack.addWidget(self.video_view)

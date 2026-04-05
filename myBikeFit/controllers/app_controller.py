@@ -21,11 +21,12 @@ from services.persistence_service import save_session, load_session
 class AppController:
     """Creates all sub-controllers, connects the navigation flow."""
 
-    PAGE_RIDER = 0
-    PAGE_BIKE = 1
-    PAGE_VIDEO = 2
-    PAGE_ANALYSIS = 3
-    PAGE_RESULTS = 4
+    PAGE_WELCOME = 0
+    PAGE_RIDER = 1
+    PAGE_BIKE = 2
+    PAGE_VIDEO = 3
+    PAGE_ANALYSIS = 4
+    PAGE_RESULTS = 5
 
     def __init__(self, window: MainWindow):
         self._window = window
@@ -50,6 +51,7 @@ class AppController:
         window.save_session_requested.connect(self._save)
         window.load_session_requested.connect(self._load)
         window.export_pdf_requested.connect(self._export_pdf)
+        window.welcome_view.start_requested.connect(self._new_session)
         window.results_view.restart_requested.connect(self._new_session)
         window.results_view.export_requested.connect(self._export_pdf)
 

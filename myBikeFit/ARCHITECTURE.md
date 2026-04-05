@@ -85,6 +85,7 @@ myBikeFit/
 ├── views/                               ← VIEW layer
 │   ├── __init__.py
 │   ├── main_window.py                   ← QMainWindow + sidebar + QStackedWidget
+│   ├── welcome_view.py                  ← Landing page (shown on startup)
 │   ├── rider_input_view.py              ← Body measurements form
 │   ├── bike_input_view.py               ← Bike geometry form
 │   ├── video_capture_view.py            ← Video upload + preview
@@ -141,11 +142,12 @@ The application strictly separates concerns into three layers:
 │  (PyQt6 Widgets)     │◄──────►│  (Logic Glue)            │
 │                      │signals │                          │
 │  • MainWindow        │& slots │  • AppController         │
-│  • RiderInputView    │        │  • RiderController       │
-│  • BikeInputView     │        │  • BikeController        │
-│  • VideoCaptureView  │        │  • VideoController       │
-│  • AnalysisView      │        │  • PoseController        │
-│  • ResultsView       │        │  • AnalysisController    │
+│  • WelcomeView       │        │  • RiderController       │
+│  • RiderInputView    │        │  • BikeController        │
+│  • BikeInputView     │        │  • VideoController       │
+│  • VideoCaptureView  │        │  • PoseController        │
+│  • AnalysisView      │        │  • AnalysisController    │
+│  • ResultsView       │        │                          │
 └──────────────────────┘        └─────────┬────────────────┘
                                           │
                                           │ reads/writes
@@ -194,12 +196,13 @@ main.py
   ├── app.qss stylesheet loaded and applied
   │
   ├── MainWindow() created
-  │   ├── Creates RiderInputView     (index 0 in QStackedWidget)
-  │   ├── Creates BikeInputView      (index 1)
-  │   ├── Creates VideoCaptureView   (index 2)
-  │   ├── Creates AnalysisView       (index 3)
-  │   ├── Creates ResultsView        (index 4)
-  │   ├── Builds sidebar QListWidget with 5 page labels
+  │   ├── Creates WelcomeView        (index 0 in QStackedWidget)
+  │   ├── Creates RiderInputView     (index 1)
+  │   ├── Creates BikeInputView      (index 2)
+  │   ├── Creates VideoCaptureView   (index 3)
+  │   ├── Creates AnalysisView       (index 4)
+  │   ├── Creates ResultsView        (index 5)
+  │   ├── Builds sidebar QListWidget with 6 page labels
   │   ├── Sets up File menu (New, Open, Save, Export PDF)
   │   └── Sets up status bar
   │
@@ -222,17 +225,18 @@ main.py
   │   │     pose_ctrl.on_complete  → app._on_pose_complete
   │   │     analysis_ctrl.on_complete → app._on_analysis_complete
   │   │
-  │   ├── Wires menu signals:
-  │   │     window.new_session_requested  → app._new_session
-  │   │     window.save_session_requested → app._save
-  │   │     window.load_session_requested → app._load
-  │   │     window.export_pdf_requested   → app._export_pdf
-  │   │     results_view.restart_requested → app._new_session
-  │   │     results_view.export_requested  → app._export_pdf
+  │   ├── Wires menu & view signals:
+  │   │     window.new_session_requested      → app._new_session
+  │   │     window.save_session_requested     → app._save
+  │   │     window.load_session_requested     → app._load
+  │   │     window.export_pdf_requested       → app._export_pdf
+  │   │     welcome_view.start_requested      → app._new_session
+  │   │     results_view.restart_requested    → app._new_session
+  │   │     results_view.export_requested     → app._export_pdf
   │   │
   │   └── Loads angle_ranges.json for current riding style → analysis_view gauges
   │
-  ├── window.show()
+  ├── window.show()   ← WelcomeView is the first visible page
   └── app.exec() ← Qt event loop starts
 ```
 
@@ -242,6 +246,15 @@ main.py
 
 ```
 ╔═══════════════════════════════════════════════════════════════════╗
+║  STEP 0: WELCOME                                                 ║
+║  ┌────────────────────────────────────────────────────────┐       ║
+║  │  App name + short description text                     │       ║
+║  │  Click: [Start New Session →]                          │       ║
+║  └─────────────────────────────┬──────────────────────────┘       ║
+║                                │ start_requested signal          ║
+║                                ▼                                  ║
+║  AppController._new_session() → navigate to RIDER page            ║
+╠═══════════════════════════════════════════════════════════════════╣
 ║  STEP 1: RIDER                                                   ║
 ║  ┌────────────────────────────────────────────────────────┐       ║
 ║  │  Enter: name, height, weight, inseam, foot size,      │       ║
@@ -568,9 +581,20 @@ Required landmarks for `is_complete` (dynamic based on side): `[side]_hip`, `[si
 The **top-level window**. Contains:
 
 - **Menu bar**: File (New `Ctrl+N`, Open `Ctrl+O`, Save `Ctrl+S`, Export PDF) + Help (About)
-- **Sidebar** (200px wide): `QListWidget` with 5 page entries (👤 Rider, 🚲 Bike, 🎥 Video, 📐 Analysis, 📊 Results)
-- **Content area**: `QStackedWidget` holding all 5 page views
+- **Sidebar** (200px wide): `QListWidget` with 6 page entries (Welcome, Rider, Bike, Video, Analysis, Results)
+- **Content area**: `QStackedWidget` holding all 6 page views
 - **Status bar**: Shows context messages
+
+**Page index constants (defined in `AppController`):**
+
+| Constant | Index | View |
+|---|---|---|
+| `PAGE_WELCOME` | 0 | `WelcomeView` |
+| `PAGE_RIDER` | 1 | `RiderInputView` |
+| `PAGE_BIKE` | 2 | `BikeInputView` |
+| `PAGE_VIDEO` | 3 | `VideoCaptureView` |
+| `PAGE_ANALYSIS` | 4 | `AnalysisView` |
+| `PAGE_RESULTS` | 5 | `ResultsView` |
 
 **Signals emitted:**
 
@@ -586,12 +610,24 @@ The **top-level window**. Contains:
 
 | Method | Description |
 |---|---|
-| `navigate_to(index)` | Programmatically switch to page 0–4 |
+| `navigate_to(index)` | Programmatically switch to page 0–5 |
 | `set_status(message)` | Update status bar text |
 
 ---
 
-### 9.2 `views/rider_input_view.py` — `RiderInputView(QWidget)`
+### 9.2 `views/welcome_view.py` — `WelcomeView(QWidget)`
+
+The **landing page** shown when the application first starts. Displays the app name, a tagline, a description paragraph, and a prominent call-to-action button.
+
+**Signal:** `start_requested()` — emitted when the user clicks "Start New Session →".
+
+The description text is stored in the module-level `_DESCRIPTION` constant at the top of the file, making it easy to edit without touching the widget code.
+
+> Connected in `AppController.__init__`: `welcome_view.start_requested → _new_session`
+
+---
+
+### 9.3 `views/rider_input_view.py` — `RiderInputView(QWidget)`
 
 Form with 7 `MeasurementInput` widgets, 2 `QComboBox` dropdowns, and a `QLineEdit` for name.
 
@@ -607,7 +643,7 @@ Form with 7 `MeasurementInput` widgets, 2 `QComboBox` dropdowns, and a `QLineEdi
 
 ---
 
-### 9.3 `views/bike_input_view.py` — `BikeInputView(QWidget)`
+### 9.4 `views/bike_input_view.py` — `BikeInputView(QWidget)`
 
 Same pattern as RiderInputView. Has "Skip →" button that emits an empty dict (all defaults kept).
 
@@ -615,7 +651,7 @@ Same pattern as RiderInputView. Has "Skip →" button that emits an empty dict (
 
 ---
 
-### 9.4 `views/video_capture_view.py` — `VideoCaptureView(QWidget)`
+### 9.5 `views/video_capture_view.py` — `VideoCaptureView(QWidget)`
 
 - Tips panel with filming guidelines
 - Embedded `VideoPlayer` widget
@@ -628,7 +664,7 @@ Same pattern as RiderInputView. Has "Skip →" button that emits an empty dict (
 
 ---
 
-### 9.5 `views/analysis_view.py` — `AnalysisView(QWidget)`
+### 9.6 `views/analysis_view.py` — `AnalysisView(QWidget)`
 
 Split layout:
 - **Left (75%)**: `VideoPlayer` showing skeleton-overlaid frames
@@ -645,7 +681,7 @@ Split layout:
 
 ---
 
-### 9.6 `views/results_view.py` — `ResultsView(QWidget)`
+### 9.7 `views/results_view.py` — `ResultsView(QWidget)`
 
 - 7 `AngleGauge` widgets repurposed as 0–100 score gauges (overall + 5 areas + sizing)
 - Sizing gauge shown conditionally when `geometry_score > 0`
@@ -666,7 +702,7 @@ Split layout:
 
 ---
 
-### 9.7 Custom Widgets
+### 9.8 Custom Widgets
 
 #### `widgets/measurement_input.py` — `MeasurementInput(QWidget)`
 
@@ -717,6 +753,17 @@ __init__(window: MainWindow)
 
 Creates all sub-controllers, wires all callbacks and menu signals.
 
+**Page index constants:**
+
+| Constant | Value |
+|---|---|
+| `PAGE_WELCOME` | 0 |
+| `PAGE_RIDER` | 1 |
+| `PAGE_BIKE` | 2 |
+| `PAGE_VIDEO` | 3 |
+| `PAGE_ANALYSIS` | 4 |
+| `PAGE_RESULTS` | 5 |
+
 **Navigation flow methods (private):**
 
 | Method | Triggered By | Action |
@@ -731,7 +778,7 @@ Creates all sub-controllers, wires all callbacks and menu signals.
 
 | Method | Triggered By | Action |
 |---|---|---|
-| `_new_session()` | Menu or "Start Over" | Reset all models, navigate → RIDER |
+| `_new_session()` | Welcome button, Menu, or "Start Over" | Reset all models, navigate → RIDER |
 | `_save()` | Menu Ctrl+S | Call `persistence_service.save_session()` |
 | `_load()` | Menu Ctrl+O | File dialog → `persistence_service.load_session()` → populate views |
 | `_export_pdf()` | Menu or button | Validates analysis exists → opens `QFileDialog` → calls `PDFReportGenerator.generate_report()` → saves PDF |
@@ -1064,6 +1111,7 @@ MainWindow.new_session_requested          →   AppController._new_session
 MainWindow.save_session_requested         →   AppController._save
 MainWindow.load_session_requested         →   AppController._load
 MainWindow.export_pdf_requested           →   AppController._export_pdf
+WelcomeView.start_requested               →   AppController._new_session
 
 RiderInputView._btn_next.clicked          →   RiderInputView._on_submit
 RiderInputView.rider_data_submitted       →   RiderController._on_data_submitted

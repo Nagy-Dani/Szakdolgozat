@@ -303,3 +303,35 @@ QLabel#recHeader {
     font-size: 16px;
     font-weight: bold;
 }
+
+/* ===== Welcome Page ===== */
+
+QLabel#welcomeTitle {
+    color: #7aa2f7;
+    font-size: 64px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+QLabel#welcomeTagline {
+    color: #a6adc8;
+    font-size: 15px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+QLabel#welcomeVersion {
+    color: #585b70;
+    font-size: 11px;
+}
+
+QLabel#welcomeDesc {
+    color: #a6adc8;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+QPushButton#welcomeStartBtn {
+    font-size: 15px;
+    border-radius: 10px;
+}
