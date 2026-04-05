@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from views.widgets.measurement_input import MeasurementInput
+from views.help_dialog import show_page_help
 from models.rider_model import Flexibility, RidingStyle
 
 
@@ -26,7 +27,16 @@ class RiderInputView(QWidget):
 
         header = QLabel("Rider Measurements")
         header.setObjectName("pageHeader")
-        layout.addWidget(header)
+        help_btn = QPushButton("?")
+        help_btn.setObjectName("helpBtn")
+        help_btn.setFixedSize(28, 28)
+        help_btn.setToolTip("Help")
+        help_btn.clicked.connect(lambda: show_page_help("rider", self))
+        header_row = QHBoxLayout()
+        header_row.addWidget(header)
+        header_row.addStretch()
+        header_row.addWidget(help_btn)
+        layout.addLayout(header_row)
 
         subtitle = QLabel("Enter your body measurements to enable accurate bike-fit analysis.")
         subtitle.setObjectName("pageSubtitle")

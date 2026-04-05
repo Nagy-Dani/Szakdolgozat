@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from views.widgets.video_player import VideoPlayer
+from views.help_dialog import show_page_help
 
 
 class VideoCaptureView(QWidget):
@@ -29,7 +30,16 @@ class VideoCaptureView(QWidget):
 
         header = QLabel("Video Input")
         header.setObjectName("pageHeader")
-        layout.addWidget(header)
+        help_btn = QPushButton("?")
+        help_btn.setObjectName("helpBtn")
+        help_btn.setFixedSize(28, 28)
+        help_btn.setToolTip("Help")
+        help_btn.clicked.connect(lambda: show_page_help("video", self))
+        header_row = QHBoxLayout()
+        header_row.addWidget(header)
+        header_row.addStretch()
+        header_row.addWidget(help_btn)
+        layout.addLayout(header_row)
 
         subtitle = QLabel(
             "Upload a side-view video of yourself pedaling on the bike. "

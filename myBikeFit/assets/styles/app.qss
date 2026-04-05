@@ -335,3 +335,29 @@ QPushButton#welcomeStartBtn {
     font-size: 15px;
     border-radius: 10px;
 }
+
+/* ===== Help Button ===== */
+
+QPushButton#helpBtn {
+    background-color: #313244;
+    color: #7aa2f7;
+    border: 1px solid #7aa2f7;
+    border-radius: 14px;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 0;
+}
+
+QPushButton#helpBtn:hover {
+    background-color: #7aa2f7;
+    color: #1e1e2e;
+}
+
+/* ===== Help Dialog Body ===== */
+
+QLabel#helpBody {
+    color: #cdd6f4;
+    font-size: 13px;
+    line-height: 1.5;
+}
+

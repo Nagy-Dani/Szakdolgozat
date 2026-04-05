@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from config import APP_NAME, APP_VERSION
+from views.help_dialog import show_page_help
 
 
 # ── Edit this text to customise the welcome page description ──────────────────
@@ -36,7 +37,17 @@ class WelcomeView(QWidget):
         title = QLabel(APP_NAME)
         title.setObjectName("welcomeTitle")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
+        help_btn = QPushButton("?")
+        help_btn.setObjectName("helpBtn")
+        help_btn.setFixedSize(28, 28)
+        help_btn.setToolTip("About this application")
+        help_btn.clicked.connect(lambda: show_page_help("welcome", self))
+        title_row = QHBoxLayout()
+        title_row.addStretch()
+        title_row.addWidget(title)
+        title_row.addStretch()
+        title_row.addWidget(help_btn)
+        root.addLayout(title_row)
 
         tagline = QLabel("AI-powered bike fitting — right from your desktop.")
         tagline.setObjectName("welcomeTagline")
