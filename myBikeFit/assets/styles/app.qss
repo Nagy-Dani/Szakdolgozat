@@ -1,0 +1,363 @@
+/* myBikeFit — Catppuccin Mocha-inspired dark theme */
+
+/* ===== Base Widgets ===== */
+
+QWidget {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+QMainWindow {
+    background-color: #1e1e2e;
+}
+
+QLabel {
+    color: #cdd6f4;
+}
+
+/* ===== Page Headers & Subtitles ===== */
+
+QLabel#pageHeader {
+    color: #cdd6f4;
+    margin-bottom: 8px;
+    font-family: "Segoe UI";
+    font-size: 22px;
+    font-weight: bold;
+}
+
+QLabel#pageSubtitle {
+    color: #a6adc8;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+/* ===== Sidebar ===== */
+
+#sidebar {
+    background-color: #1e1e2e;
+    border-right: 1px solid #333;
+}
+
+QLabel#sidebarTitle {
+    color: #7aa2f7;
+    padding: 12px;
+    font-family: "Segoe UI";
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QListWidget#navList {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    color: #cdd6f4;
+}
+
+QListWidget#navList::item {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 2px 8px;
+}
+
+QListWidget#navList::item:selected {
+    background-color: #313244;
+    color: #7aa2f7;
+}
+
+QListWidget#navList::item:hover {
+    background-color: #2a2a3c;
+}
+
+/* ===== Group Boxes ===== */
+
+QGroupBox {
+    border: 1px solid #45475a;
+    border-radius: 8px;
+    margin-top: 12px;
+    padding: 16px 12px 12px 12px;
+    color: #cdd6f4;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 8px;
+    color: #7aa2f7;
+}
+
+/* ===== Form Inputs ===== */
+
+QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {
+    background-color: #313244;
+    border: 1px solid #45475a;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #cdd6f4;
+    selection-background-color: #7aa2f7;
+}
+
+QLineEdit:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border-color: #7aa2f7;
+}
+
+/* ===== Buttons ===== */
+
+QPushButton {
+    background-color: #45475a;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: #cdd6f4;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #585b70;
+}
+
+QPushButton:pressed {
+    background-color: #313244;
+}
+
+/* Primary action buttons (blue) */
+QPushButton[class="primary"] {
+    background-color: #7aa2f7;
+    color: #1e1e2e;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+QPushButton[class="primary"]:hover {
+    background-color: #89b4fa;
+}
+
+QPushButton[class="primary"]:disabled {
+    background-color: #45475a;
+    color: #6c7086;
+}
+
+/* Secondary action buttons (gray) */
+QPushButton[class="secondary"] {
+    background-color: #45475a;
+    color: #cdd6f4;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+QPushButton[class="secondary"]:hover {
+    background-color: #585b70;
+}
+
+/* ===== Tips Box ===== */
+
+QLabel#tipsBox {
+    background-color: #313244;
+    padding: 12px;
+    border-radius: 8px;
+    color: #cdd6f4;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+/* ===== Video Player ===== */
+
+QLabel#videoDisplay {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+}
+
+/* ===== Sliders ===== */
+
+QSlider::groove:horizontal {
+    background: #45475a;
+    height: 6px;
+    border-radius: 3px;
+}
+
+QSlider::handle:horizontal {
+    background: #7aa2f7;
+    width: 14px;
+    height: 14px;
+    margin: -4px 0;
+    border-radius: 7px;
+}
+
+/* ===== Progress Bar ===== */
+
+QProgressBar {
+    background-color: #313244;
+    border-radius: 4px;
+    text-align: center;
+    color: #cdd6f4;
+}
+
+QProgressBar::chunk {
+    background-color: #7aa2f7;
+    border-radius: 4px;
+}
+
+/* ===== Scroll Area & Bars ===== */
+
+QScrollArea {
+    border: none;
+}
+
+QScrollBar:vertical {
+    background: #1e1e2e;
+    width: 8px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:vertical {
+    background: #45475a;
+    border-radius: 4px;
+    min-height: 30px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+/* ===== Menu Bar ===== */
+
+QMenuBar {
+    background-color: #181825;
+    color: #cdd6f4;
+    border-bottom: 1px solid #313244;
+}
+
+QMenuBar::item:selected {
+    background-color: #313244;
+}
+
+QMenu {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+}
+
+QMenu::item:selected {
+    background-color: #313244;
+}
+
+/* ===== Status Bar ===== */
+
+QStatusBar {
+    background-color: #181825;
+    color: #a6adc8;
+    border-top: 1px solid #313244;
+}
+
+/* ===== Results View: Category Label (base) ===== */
+
+QLabel#categoryLabel {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+/* ===== Results View: Recommendation Cards ===== */
+
+QFrame#recCard {
+    background-color: #313244;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QFrame#recCard QLabel {
+    background-color: transparent;
+}
+
+QLabel#recName {
+    color: #cdd6f4;
+    font-family: "Segoe UI";
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QLabel#recAdjustment {
+    color: #cdd6f4;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+QLabel#recDetail {
+    color: #a6adc8;
+    font-size: 12px;
+}
+
+QLabel#recExplanation {
+    color: #6c7086;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+QLabel#recHeader {
+    color: #cdd6f4;
+    margin-top: 12px;
+    font-family: "Segoe UI";
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ===== Welcome Page ===== */
+
+QLabel#welcomeTitle {
+    color: #7aa2f7;
+    font-size: 64px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+QLabel#welcomeTagline {
+    color: #a6adc8;
+    font-size: 15px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+QLabel#welcomeVersion {
+    color: #585b70;
+    font-size: 11px;
+}
+
+QLabel#welcomeDesc {
+    color: #a6adc8;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+QPushButton#welcomeStartBtn {
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+/* ===== Help Button ===== */
+
+QPushButton#helpBtn {
+    background-color: #313244;
+    color: #7aa2f7;
+    border: 1px solid #7aa2f7;
+    border-radius: 14px;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 0;
+}
+
+QPushButton#helpBtn:hover {
+    background-color: #7aa2f7;
+    color: #1e1e2e;
+}
+
+/* ===== Help Dialog Body ===== */
+
+QLabel#helpBody {
+    color: #cdd6f4;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
