@@ -45,7 +45,28 @@ fi
 PYQT_PATH=$(./myBikeFit/venv/bin/python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'plugins'))")
 export QT_PLUGIN_PATH="$PYQT_PATH"
 
-# 7. Run the application
+# 7. Download the MediaPipe pose landmarker model if not already present
+MODEL_DIR="$PROJECT_DIR/assets/models"
+MODEL_FILE="$MODEL_DIR/pose_landmarker_heavy.task"
+MODEL_URL="https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task"
+
+if [ ! -f "$MODEL_FILE" ]; then
+    echo "Pose landmarker model not found. Downloading (this may take a while)..."
+    mkdir -p "$MODEL_DIR"
+    if command -v curl > /dev/null 2>&1; then
+        curl -L --progress-bar -o "$MODEL_FILE" "$MODEL_URL"
+    elif command -v wget > /dev/null 2>&1; then
+        wget -q --show-progress -O "$MODEL_FILE" "$MODEL_URL"
+    else
+        echo "Error: Neither curl nor wget is available. Please install one and try again."
+        exit 1
+    fi
+    echo "Model downloaded successfully."
+else
+    echo "Pose landmarker model already present, skipping download."
+fi
+
+# 8. Run the application
 echo "Starting myBikeFit..."
 cd "$PROJECT_DIR"
 ./venv/bin/python main.py
