@@ -20,7 +20,7 @@ QLabel {
 QLabel#pageHeader {
     color: #cdd6f4;
     margin-bottom: 8px;
-    font-family: "Segoe UI";
+    font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 22px;
     font-weight: bold;
 }
@@ -41,7 +41,7 @@ QLabel#pageSubtitle {
 QLabel#sidebarTitle {
     color: #7aa2f7;
     padding: 12px;
-    font-family: "Segoe UI";
+    font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 16px;
     font-weight: bold;
 }
@@ -274,7 +274,7 @@ QFrame#recCard QLabel {
 
 QLabel#recName {
     color: #cdd6f4;
-    font-family: "Segoe UI";
+    font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 14px;
     font-weight: bold;
 }
@@ -299,7 +299,7 @@ QLabel#recExplanation {
 QLabel#recHeader {
     color: #cdd6f4;
     margin-top: 12px;
-    font-family: "Segoe UI";
+    font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 16px;
     font-weight: bold;
 }
