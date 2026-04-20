@@ -82,11 +82,6 @@ assets/models/*.pb
 output/
 exports/
 
-# AI assistant directories
-.gemini/
-.agent/
-.agents/
-
 # Videos for testing
 videos/
 

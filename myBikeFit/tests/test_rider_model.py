@@ -16,7 +16,7 @@ def test_valid_rider():
 
 
 def test_invalid_height():
-    rider = RiderMeasurements(height_cm=50)  # too short
+    rider = RiderMeasurements(height_cm=50)
     errors = rider.validate()
     assert any("height_cm" in e for e in errors)
 

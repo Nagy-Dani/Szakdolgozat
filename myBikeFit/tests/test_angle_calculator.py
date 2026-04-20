@@ -44,7 +44,7 @@ def test_hip_angle():
 
 
 def test_back_angle():
-    shoulder = _lm(0.35, 0.2, "left_shoulder")  # directly above hip
+    shoulder = _lm(0.35, 0.2, "left_shoulder")
     hip = _lm(0.35, 0.4, "left_hip")
     angle = calculate_back_angle(shoulder, hip)
     assert 0 <= angle <= 90

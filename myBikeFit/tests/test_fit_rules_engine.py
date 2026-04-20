@@ -71,14 +71,19 @@ def test_different_styles_return_results(default_rider, default_bike):
 
 
 def test_geometric_recommendations_triggered():
-    """If body measurements are provided, geometric recs should be generated."""
+    """If body measurements are provided, geometric recs should be generated.
+    Ideal is 80 * 0.883 = 70.6 (Too high)
+    Ideal is 80 * 0.66 = 52.8 (Too big)
+    Ideal is (80*1.25)+65 = 165.0 (Too long)
+    Ideal is (365+(0.85*58))/10 = 41.43 (Too long)
+    """
     angles = CyclingAngles()
     rider = RiderMeasurements(inseam_cm=80.0, torso_length_cm=50.0, arm_length_cm=60.0)
     bike = BikeGeometry(
-        saddle_height_cm=75.0,  # Ideal is 80 * 0.883 = 70.6 (Too high)
-        frame_size_cm=58.0,     # Ideal is 80 * 0.66 = 52.8 (Too big)
-        crank_length_mm=175.0,  # Ideal is (80*1.25)+65 = 165.0 (Too long)
-        handlebar_reach_cm=70.0 # Ideal is (365+(0.85*58))/10 = 41.43 (Too long)
+        saddle_height_cm=75.0,  
+        frame_size_cm=58.0,     
+        crank_length_mm=175.0,  
+        handlebar_reach_cm=70.0 
     )
     score, recs = evaluate_fit(angles, rider, bike)
 
@@ -100,8 +105,8 @@ def test_geometric_recommendations_triggered():
 def test_geometric_recommendations_skipped_if_missing():
     """If body measurements are zeros (default), skip geometric checks."""
     angles = CyclingAngles()
-    rider = RiderMeasurements()  # All 0.0
-    bike = BikeGeometry()        # All 0.0, crank defaults to 172.5, stem 100
+    rider = RiderMeasurements()
+    bike = BikeGeometry()   
     
     score, recs = evaluate_fit(angles, rider, bike)
     comps = [r.component for r in recs]

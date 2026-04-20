@@ -143,7 +143,7 @@ def test_cycling_angles_from_dict():
 def test_fit_score_from_dict():
     score = _sample_score()
     d = score.to_dict()
-    assert "category" in d  # to_dict includes computed category
+    assert "category" in d
     restored = FitScore.from_dict(d)
     assert restored.overall == score.overall
     assert restored.category == "good"
