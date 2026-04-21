@@ -174,6 +174,20 @@ class AppController:
                 self._update_analysis_ranges()
                 self._window.results_view.set_scores(data["fit_score"])
                 self._window.results_view.set_recommendations(data["recommendations"])
+                self._analysis_ctrl._fit_score = data["fit_score"]
+                self._analysis_ctrl._recommendations = data["recommendations"]
+                if "cycling_angles" in data:
+                    self._analysis_ctrl._angles = data["cycling_angles"]
+
+                video_path = data.get("video_path", "")
+                facing_side = data.get("facing_side", "left")
+                self._window.analysis_view.facing_side = facing_side
+                if video_path:
+                    try:
+                        self._window.analysis_view.player.load_video(video_path)
+                    except Exception:
+                        pass
+
                 self._window.set_status(f"Session loaded with results: {path}")
                 self._window.navigate_to(self.PAGE_RESULTS)
             else:
