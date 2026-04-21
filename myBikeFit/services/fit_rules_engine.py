@@ -7,7 +7,7 @@ from pathlib import Path
 
 from models.analysis_model import CyclingAngles, FitScore
 from models.recommendation_model import Recommendation, Severity
-from models.rider_model import RiderMeasurements
+from models.rider_model import RiderMeasurements, Flexibility
 from models.bike_model import BikeGeometry
 
 
@@ -27,6 +27,26 @@ def _severity_from_deviation(deviation: float, range_width: float) -> Severity:
     if ratio <= 1.0:
         return Severity.MODERATE
     return Severity.CRITICAL
+
+
+_FLEXIBILITY_OFFSETS: dict[Flexibility, dict[str, int]] = {
+    Flexibility.LOW:    {"hip_angle": +6, "back_angle": +6, "knee_flexion_max": +4},
+    Flexibility.MEDIUM: {"hip_angle":  0, "back_angle":  0, "knee_flexion_max":  0},
+    Flexibility.HIGH:   {"hip_angle": -6, "back_angle": -6, "knee_flexion_max": -4},
+}
+
+
+def _apply_flexibility_offsets(ranges: dict, flexibility: Flexibility) -> dict:
+    """Shift ideal windows for flexibility-sensitive angles without mutating the original."""
+    offsets = _FLEXIBILITY_OFFSETS.get(flexibility, {})
+    if not offsets:
+        return ranges
+    result = {k: dict(v) for k, v in ranges.items()}
+    for angle, delta in offsets.items():
+        if angle in result:
+            result[angle]["min"] += delta
+            result[angle]["max"] += delta
+    return result
 
 
 def _score_single(value: float, ideal_min: float, ideal_max: float) -> float:
@@ -52,6 +72,8 @@ def evaluate_fit(
     all_ranges = _load_ranges()
     riding_style = rider.riding_style.value if rider else "road"
     ranges = all_ranges.get(riding_style, all_ranges["road"])
+    if rider:
+        ranges = _apply_flexibility_offsets(ranges, rider.flexibility)
 
     recommendations: list[Recommendation] = []
 
