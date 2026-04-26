@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+echo "Starting myBikeFit setup..."
+
+# 1. Define folder paths and target environment details
+PROJECT_DIR="myBikeFit"
+VENV_DIR="$PROJECT_DIR/venv"
+PYTHON_CMD="python3.11"
+
+# 2. Check if Python is installed
+if ! command -v $PYTHON_CMD >/dev/null 2>&1; then
+    echo "Error: $PYTHON_CMD is not installed or not in PATH."
+    echo "Please install Python 3.9+ or change the PYTHON_CMD variable in this script."
+    exit 1
+fi
+
+# 3. Create Virtual Environment
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating virtual environment at $VENV_DIR..."
+    $PYTHON_CMD -m venv "$VENV_DIR"
+else
+    echo "Virtual environment already exists at $VENV_DIR, skipping creation."
+fi
+
+# 4. Activate Virtual Environment
+echo "Activating virtual environment..."
+source "$VENV_DIR/bin/activate"
+
+# 5. Install dependencies (only if not already installed)
+# 5. Install dependencies (only if not already installed)
+if [ ! -d "$VENV_DIR/lib/python3.11/site-packages/PyQt6" ]; then
+    if [ -f "$PROJECT_DIR/requirements.txt" ]; then
+        echo "Installing requirements from requirements.txt..."
+        "$VENV_DIR/bin/pip" install -r "$PROJECT_DIR/requirements.txt"
+        xattr -rc "$VENV_DIR" 2>/dev/null || true
+    fi
+else
+    echo "Dependencies already installed, skipping."
+fi
+
+# 6. Set Qt plugin path so PyQt6 finds the cocoa platform plugin
+PYQT_PATH=$(./myBikeFit/venv/bin/python -c "import PyQt6; import os; print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'plugins'))")
+export QT_PLUGIN_PATH="$PYQT_PATH"
+
+# 7. Download the MediaPipe pose landmarker model if not already present
+MODEL_DIR="$PROJECT_DIR/assets/models"
+MODEL_FILE="$MODEL_DIR/pose_landmarker_heavy.task"
+MODEL_URL="https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task"
+
+if [ ! -f "$MODEL_FILE" ]; then
+    echo "Pose landmarker model not found. Downloading (this may take a while)..."
+    mkdir -p "$MODEL_DIR"
+    if command -v curl > /dev/null 2>&1; then
+        curl -L --progress-bar -o "$MODEL_FILE" "$MODEL_URL"
+    elif command -v wget > /dev/null 2>&1; then
+        wget -q --show-progress -O "$MODEL_FILE" "$MODEL_URL"
+    else
+        echo "Error: Neither curl nor wget is available. Please install one and try again."
+        exit 1
+    fi
+    echo "Model downloaded successfully."
+else
+    echo "Pose landmarker model already present, skipping download."
+fi
+
+# 8. Run the application
+echo "Starting myBikeFit..."
+cd "$PROJECT_DIR"
+./venv/bin/python main.py
+
+echo "Application closed."
+# Deactivate when done
+deactivate
