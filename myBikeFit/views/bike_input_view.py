@@ -104,6 +104,17 @@ class BikeInputView(QWidget):
         self._stem_length.value = data.get("stem_length_mm", 100)
         self._stem_angle.value = data.get("stem_angle_deg", -6)
 
+    def reset(self) -> None:
+        """Restore all fields to their default values."""
+        self._frame_size.value = 0
+        self._saddle_height.value = 0
+        self._saddle_setback.value = 0
+        self._reach.value = 0
+        self._drop.value = 0
+        self._crank_length.value = 172.5
+        self._stem_length.value = 100
+        self._stem_angle.value = -6
+
     def show_errors(self, errors: list[str]) -> None:
         QMessageBox.warning(self, "Validation Errors", "\n".join(errors))
 

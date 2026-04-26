@@ -1,4 +1,3 @@
-"""Tests for rider model."""
 from __future__ import annotations
 
 import pytest

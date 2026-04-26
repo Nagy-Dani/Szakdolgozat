@@ -120,6 +120,19 @@ class RiderInputView(QWidget):
         self._torso_length.value = data.get("torso_length_cm", 52)
         self._shoulder_width.value = data.get("shoulder_width_cm", 38)
 
+    def reset(self) -> None:
+        """Restore all fields to their default values."""
+        self._name_input.clear()
+        self._height.value = 180
+        self._weight.value = 65
+        self._inseam.value = 83
+        self._foot_size.value = 41
+        self._arm_length.value = 60
+        self._torso_length.value = 52
+        self._shoulder_width.value = 38
+        self._flexibility.setCurrentIndex(1)
+        self._riding_style.setCurrentIndex(0)
+
     def show_errors(self, errors: list[str]) -> None:
         QMessageBox.warning(self, "Validation Errors", "\n".join(errors))
 

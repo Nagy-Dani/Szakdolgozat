@@ -64,7 +64,7 @@ myBikeFit/
 ├── main.py                              ← Application entry point
 ├── requirements.txt                     ← Python dependencies
 ├── README.md                            ← Quick-start guide
-├── PROMPT.md                            ← Original recreation prompt/spec
+├── ARCHITECTURE.md                      ← This file
 │
 ├── assets/
 │   └── styles/

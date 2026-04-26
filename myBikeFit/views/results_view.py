@@ -43,17 +43,17 @@ class ResultsView(QWidget):
 
         scores_row = QHBoxLayout()
 
-        self._overall_gauge = AngleGauge("Overall Score", 0, 100)
+        self._overall_gauge = AngleGauge("Overall Score", 0, 100, score_mode=True)
         self._overall_gauge.setMinimumSize(160, 180)
         scores_row.addWidget(self._overall_gauge)
 
-        self._gauge_knee = AngleGauge("Knee", 0, 100)
-        self._gauge_hip = AngleGauge("Hip", 0, 100)
-        self._gauge_back = AngleGauge("Back", 0, 100)
-        self._gauge_ankle = AngleGauge("Ankle", 0, 100)
-        self._gauge_reach = AngleGauge("Reach", 0, 100)
-        
-        self._gauge_sizing = AngleGauge("Sizing", 0, 100)
+        self._gauge_knee = AngleGauge("Knee", 0, 100, score_mode=True)
+        self._gauge_hip = AngleGauge("Hip", 0, 100, score_mode=True)
+        self._gauge_back = AngleGauge("Back", 0, 100, score_mode=True)
+        self._gauge_ankle = AngleGauge("Ankle", 0, 100, score_mode=True)
+        self._gauge_reach = AngleGauge("Reach", 0, 100, score_mode=True)
+
+        self._gauge_sizing = AngleGauge("Sizing", 0, 100, score_mode=True)
         self._gauge_sizing.hide()
 
         for g in [self._gauge_knee, self._gauge_hip, self._gauge_back,

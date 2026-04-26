@@ -1,5 +1,3 @@
-"""Tests for persistence_service — full session save/load roundtrip."""
-
 from __future__ import annotations
 
 import json
@@ -80,7 +78,6 @@ def test_full_roundtrip():
             path=path,
         )
 
-        # Verify JSON is valid and has v2.0 schema
         with open(path) as f:
             raw = json.load(f)
         assert raw["version"] == "2.0"
@@ -129,7 +126,7 @@ def test_minimal_save_load():
         assert "fit_score" not in data
         assert "cycling_angles" not in data
         assert "recommendations" not in data
-        assert data["facing_side"] == "left"  # default
+        assert data["facing_side"] == "left"
 
 
 def test_cycling_angles_from_dict():
@@ -143,7 +140,7 @@ def test_cycling_angles_from_dict():
 def test_fit_score_from_dict():
     score = _sample_score()
     d = score.to_dict()
-    assert "category" in d
+    assert "category" in d 
     restored = FitScore.from_dict(d)
     assert restored.overall == score.overall
     assert restored.category == "good"

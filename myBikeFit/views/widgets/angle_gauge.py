@@ -21,12 +21,14 @@ class AngleGauge(QWidget):
         ideal_max: float = 180.0,
         value: float = 0.0,
         parent: QWidget | None = None,
+        score_mode: bool = False,
     ):
         super().__init__(parent)
         self._label = label
         self._ideal_min = ideal_min
         self._ideal_max = ideal_max
         self._value = value
+        self._score_mode = score_mode
         self.setMinimumSize(100, 120)
 
     def set_value(self, value: float) -> None:
@@ -38,8 +40,20 @@ class AngleGauge(QWidget):
         self._ideal_max = ideal_max
         self.update()
 
+    def set_score_mode(self, enabled: bool) -> None:
+        self._score_mode = enabled
+        self.update()
+
     @property
     def severity_color(self) -> QColor:
+        if self._score_mode:
+            if self._value >= 90:
+                return QColor("#22c55e")
+            if self._value >= 75:
+                return QColor("#84cc16")
+            if self._value >= 55:
+                return QColor("#eab308")
+            return QColor("#ef4444")
         if self._ideal_min <= self._value <= self._ideal_max:
             return QColor("#22c55e")
         margin = (self._ideal_max - self._ideal_min) * 0.5
@@ -71,14 +85,16 @@ class AngleGauge(QWidget):
         color = self.severity_color
         pen.setColor(color)
         painter.setPen(pen)
-        frac = max(0.0, min(1.0, self._value / 180.0))
+        scale = 100.0 if self._score_mode else 180.0
+        frac = max(0.0, min(1.0, self._value / scale))
         span = int(-240 * frac * 16)
         painter.drawArc(rect, 210 * 16, span)
 
         painter.setPen(QColor("white"))
         font = QFont("Arial", 14, QFont.Weight.Bold)
         painter.setFont(font)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self._value:.0f}°")
+        text = f"{self._value:.0f}" if self._score_mode else f"{self._value:.0f}°"
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
 
         font = QFont("Arial", 9)
         painter.setFont(font)

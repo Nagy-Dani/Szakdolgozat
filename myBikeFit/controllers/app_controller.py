@@ -136,6 +136,8 @@ class AppController:
         self._bike = BikeGeometry()
         self._pose_sequence = None
         self._pose_ctrl.stop()
+        self._window.rider_view.reset()
+        self._window.bike_view.reset()
         self._window.navigate_to(self.PAGE_RIDER)
         self._window.set_status("New session started")
 

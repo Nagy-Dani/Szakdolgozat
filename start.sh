@@ -8,7 +8,7 @@ echo "Starting myBikeFit setup..."
 # 1. Define folder paths and target environment details
 PROJECT_DIR="myBikeFit"
 VENV_DIR="$PROJECT_DIR/venv"
-PYTHON_CMD="python3"
+PYTHON_CMD="python3.11"
 
 # 2. Check if Python is installed
 if ! command -v $PYTHON_CMD >/dev/null 2>&1; then
@@ -29,16 +29,16 @@ fi
 echo "Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
 
-# 5. Install / Upgrade dependencies
-echo "Upgrading pip..."
-"$PWD/$VENV_DIR/bin/pip" install --upgrade pip
-
-if [ -f "$PROJECT_DIR/requirements.txt" ]; then
-    echo "Installing requirements from requirements.txt..."
-    # Installing using the venv's pip explicitly
-    "$PWD/$VENV_DIR/bin/pip" install -r "$PROJECT_DIR/requirements.txt"
+# 5. Install dependencies (only if not already installed)
+# 5. Install dependencies (only if not already installed)
+if [ ! -d "$VENV_DIR/lib/python3.11/site-packages/PyQt6" ]; then
+    if [ -f "$PROJECT_DIR/requirements.txt" ]; then
+        echo "Installing requirements from requirements.txt..."
+        "$VENV_DIR/bin/pip" install -r "$PROJECT_DIR/requirements.txt"
+        xattr -rc "$VENV_DIR" 2>/dev/null || true
+    fi
 else
-    echo "Warning: requirements.txt not found in $PROJECT_DIR."
+    echo "Dependencies already installed, skipping."
 fi
 
 # 6. Set Qt plugin path so PyQt6 finds the cocoa platform plugin
