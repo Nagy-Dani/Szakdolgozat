@@ -12,7 +12,7 @@ from views.help_dialog import show_page_help
 _DESCRIPTION = (
     "Welcome to myBikeFit! This application analyses a short video of you riding and uses computer vision to "
     "measure your key cycling angles — knee extension, hip angle, back angle, and more. "
-    "In five steps you'll get a personalised fit score and concrete adjustment recommendations tailored to your riding style."
+    "In five steps you'll get a personalised fit score and concrete adjustment recommendations tailored to your riding style. "
     "Hit 'Start New Session' to get started."
 )
 # ─────────────────────────────────────────────────────────────────────────────
